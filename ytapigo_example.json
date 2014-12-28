@@ -1,0 +1,6 @@
+// set API keys values and move this file to $HOME/.ytapigo
+{
+  "APItr": "key value",
+  "APIdict": "key value",
+  "Debug": false
+}
