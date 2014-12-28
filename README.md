@@ -5,7 +5,7 @@ It is a programm to translate and check spelling using the console, it based on 
 
 ### API keys
 
-You should get API KEYs before an using this program, them values have to wroten to a file **$HOME/.ytapigo.json**:
+You should get API KEYs before an using this program, them values have to wroten to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`):
 
 ```
 {
