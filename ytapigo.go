@@ -10,7 +10,7 @@ import (
     "encoding/json"
     "os"
     "strings"
-    // "io"
+    "time"
 )
 func CheckYT() string {
     return TestMsg
@@ -22,10 +22,12 @@ const (
     ConfName string = ".ytapigo"
 )
 var (
-    // 0-Spelling, 1-Translation
-    YtJsonURLs = [2]string{
+    // 0-Spelling, 1-Translation, 2-Dict
+    YtJsonURLs = [3]string{
         "http://speller.yandex.net/services/spellservice.json/checkText?",
-        "https://translate.yandex.net/api/v1.5/tr.json/translate?"}
+        "https://translate.yandex.net/api/v1.5/tr.json/translate?",
+        "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?"
+    }
     LoggerError *log.Logger
     LoggerDebug *log.Logger
 )
@@ -143,7 +145,12 @@ func ReadConfig() (YtConfig, error) {
 func GetYtResponse(url string, params *url.Values) ([]byte, error) {
     // TODO: http://golang.org/pkg/net/http/#Transport
     result := []byte("")
-    resp, err := http.Get(url + params.Encode())
+    tr := &http.Transport{
+        Proxy: http.ProxyFromEnvironment,
+        TLSHandshakeTimeout: 10 * time.Second,
+    }
+    client := &http.Client{Transport: tr}
+    resp, err := client.Get(url + params.Encode())
     if err != nil {
         LoggerError.Println(err)
         return result, err
