@@ -2,5 +2,6 @@
 {
   "APItr": "key value",
   "APIdict": "key value",
+  "proxy": "",
   "Debug": false
 }

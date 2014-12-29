@@ -9,6 +9,8 @@ import (
     "io/ioutil"
     "encoding/json"
     "os"
+    "strings"
+    // "io"
 )
 func CheckYT() string {
     return TestMsg
@@ -18,23 +20,43 @@ const (
     TestMsg string = "YtapiGo"
     ConfDir string = "$HOME"
     ConfName string = ".ytapigo"
-    YSpellJSON string = "http://speller.yandex.net/services/spellservice.json/checkText?"
 )
-type ShowLog interface {
-    PrintLog(msg ...string)
+var (
+    // 0-Spelling, 1-Translation
+    YtJsonURLs = [2]string{
+        "http://speller.yandex.net/services/spellservice.json/checkText?",
+        "https://translate.yandex.net/api/v1.5/tr.json/translate?"}
+    LoggerError *log.Logger
+    LoggerDebug *log.Logger
+)
+
+// Initiate Logger handlers
+func LoggerInit(ytconfig *YtConfig) {
+    errorHandle, debugHandle := os.Stdout, ioutil.Discard
+    if ytconfig.Debug {
+        debugHandle = os.Stdout
+    }
+
+    LoggerDebug = log.New(debugHandle,
+        "DEBUG: ",
+        log.Ldate|log.Lmicroseconds|log.Lshortfile)
+
+    LoggerError = log.New(errorHandle,
+        "ERROR: ",
+        log.Ldate|log.Ltime|log.Lshortfile)
 }
+// Interface to prepare JSON response
+type Builder interface {
+    Build(m map[string]interface{})
+}
+// configuration data
 type YtConfig struct {
     APItr string
     APIdict string
     Debug bool
 }
-func (yt *YtConfig) PrintLog(msg ...string) {
-    if yt.Debug {
-        log.Println(msg)
-    }
-}
 func (yt YtConfig) String() string {
-    return fmt.Sprintf("Config:\n APItr=%v\n APIdict=%v\n Debug=%v", yt.APItr, yt.APIdict, yt.Debug)
+    return fmt.Sprintf("\nConfig:\n APItr=%v\n APIdict=%v\n Debug=%v", yt.APItr, yt.APIdict, yt.Debug)
 }
 type JsonSpelResp struct {
     word string
@@ -45,79 +67,186 @@ type JsonSpelResp struct {
     col float64
     len float64
 }
-func (jspresp *JsonSpelResp) Exists() bool {
-    if len(jspresp.s) > 0 {
+type JsonTrResp struct {
+    code float64
+    lang string
+    text []string
+}
+type JsonSpelResps []JsonSpelResp
+
+func (jspell *JsonSpelResp) Exists() bool {
+    if len(jspell.s) > 0 {
         return true
     }
     return false
 }
-func (jspresp *JsonSpelResp) Spell() string {
-    return fmt.Sprintf("Spelling: %v -> %v", jspresp.word, jspresp.s)
-}
-func GetJsonSpelResp(m map[string]interface{}) JsonSpelResp {
-    s_array_i := m["s"].([]interface{})
-    s_array := make([]string, len(s_array_i))
-    for i, v := range s_array_i {
-        s_array[i] = v.(string)
+func (jspells *JsonSpelResps) Exists() bool {
+    if len(*jspells) > 0 {
+        return true
     }
-    return JsonSpelResp{m["word"].(string), s_array, m["code"].(float64), m["pos"].(float64), m["row"].(float64), m["col"].(float64), m["len"].(float64)}
+    return false
+}
+func (jspell *JsonSpelResp) String() string {
+    return fmt.Sprintf("%v -> %v", jspell.word, jspell.s)
+}
+func (jstr *JsonTrResp) String() string {
+    if len(jstr.text) == 0 {
+        return ""
+    }
+    return jstr.text[0]
+}
+func (jspells JsonSpelResps) String() string {
+    spellstr := make([]string, len(jspells))
+    for i, v := range jspells {
+        if v.Exists() {
+            spellstr[i] = v.String()
+        }
+    }
+    return fmt.Sprintf("Spelling: \n\t%v\n", strings.Join(spellstr, "\n\t"))
+}
+func (jspell *JsonSpelResp) Build(m map[string]interface{}) {
+    s_array := m["s"].([]interface{})
+    jspell.s = make([]string, len(s_array))
+    for i, v := range s_array {
+        jspell.s[i] = v.(string)
+    }
+    jspell.word = m["word"].(string)
+    jspell.code = m["code"].(float64)
+    jspell.pos = m["pos"].(float64)
+    jspell.row = m["row"].(float64)
+    jspell.col = m["col"].(float64)
+    jspell.len = m["len"].(float64)
+}
+func (jstr *JsonTrResp) Build(m map[string]interface{}) {
+    s_array := m["text"].([]interface{})
+    jstr.text = make([]string, len(s_array))
+    for i, v := range s_array {
+        jstr.text[i] = v.(string)
+    }
+    jstr.code = m["code"].(float64)
+    jstr.lang = m["lang"].(string)
 }
 
-// =============================================
 // read configuration file
 func ReadConfig() (YtConfig, error) {
-    var showl ShowLog
     viper.SetConfigName(ConfName)
     viper.SetConfigType("json")
     viper.AddConfigPath(ConfDir)
     viper.ReadInConfig()
     ytconfig := YtConfig{viper.GetString("APItr"), viper.GetString("APIdict"), viper.GetBool("Debug")}
-    showl = &ytconfig
     if (ytconfig.APItr == "") || (ytconfig.APIdict == "") {
-        showl.PrintLog(ytconfig.String())
         return ytconfig, fmt.Errorf("Can not read API keys value from config file: %v/%v", ConfDir, ConfName)
     }
     return ytconfig, nil
 }
 
-func GetTr() {
-    if len(os.Args) < 2 {
-        log.Fatalln("Too few parameters")
-    }
-    // fmt.Println(os.Args[5:])
-    // strings.Join(os.Args, " ")
-
-    cfg, err := ReadConfig()
+func GetYtResponse(url string, params *url.Values) ([]byte, error) {
+    // TODO: http://golang.org/pkg/net/http/#Transport
+    result := []byte("")
+    resp, err := http.Get(url + params.Encode())
     if err != nil {
-        log.Fatalln(err)
-    }
-    fmt.Println(cfg)
-
-
-
-    params := url.Values{"lang": {"ru"}, "text": {"малоко"}, "format": {"plain"}, "options": {"518"}}
-    resp, err := http.Get(YSpellJSON + params.Encode())
-    if err != nil {
-        log.Fatalln(err)
+        LoggerError.Println(err)
+        return result, err
     }
     defer resp.Body.Close()
 
     if resp.StatusCode != 200 {
-        log.Fatalln("Wrong response code=%v", resp.StatusCode)
+        return result, fmt.Errorf("Wrong response code=%v", resp.StatusCode)
     }
-
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil {
-        log.Fatal(err)
+        LoggerError.Println(err)
+        return result, err
+    }
+    // LoggerDebug.Println(string(body))
+    return body, nil
+}
+
+// get spelling
+func GetSpelling(lang string, txt string) (JsonSpelResps, error) {
+    LoggerDebug.Println("Call GetSpelling")
+    result := make(JsonSpelResps, 0)
+    params := url.Values{
+        "lang": {lang},
+        "text": {txt},
+        "format": {"plain"},
+        "options": {"518"}}
+    body, err := GetYtResponse(YtJsonURLs[0], &params)
+    if err != nil {
+        return result, err
     }
     var jsr []map[string]interface{}
     if err := json.Unmarshal(body, &jsr); err != nil {
-        log.Fatal(err)
+        LoggerError.Println(err)
+        return result, err
     }
-    for _, val := range jsr {
-        obj := GetJsonSpelResp(val)
-        if obj.Exists() {
-            fmt.Println(obj.Spell())
+    result = make(JsonSpelResps, len(jsr))
+    for i, val := range jsr {
+        result[i].Build(val)
+    }
+    return result, nil
+}
+// get Translation
+func GetTranslation(lang string, txt string, key string) (JsonTrResp, error) {
+    LoggerDebug.Println("Call GetTranslation")
+    result := JsonTrResp{}
+    params := url.Values{
+        "lang": {lang},
+        "text": {txt},
+        "key": {key},
+        "format": {"plain"}}
+    body, err := GetYtResponse(YtJsonURLs[1], &params)
+    if err != nil {
+        return result, err
+    }
+    var jsr map[string]interface{}
+    if err := json.Unmarshal(body, &jsr); err != nil {
+        LoggerError.Println(err)
+        return result, err
+    }
+    result.Build(jsr)
+    return result, nil
+}
+
+// main YtapiGo function
+func GetTr() {
+    var lang, langs, txt string
+    lenparams := len(os.Args)
+    if lenparams < 2 {
+        log.Fatalln("Too few parameters")
+    } else if lenparams == 2 {
+        lang, langs, txt = "en", "en-ru", os.Args[1]
+    } else {
+        switch os.Args[1] {
+            case "ru", "ру":
+                lang, langs = "ru", "ru-en"
+                txt = strings.Join(os.Args[2:], " ")
+            case "en", "анг":
+                lang, langs = "en", "en-ru"
+                txt = strings.Join(os.Args[2:], " ")
+            default:
+                lang, langs = "en", "en-ru"
+                txt = strings.Join(os.Args[1:], " ")
         }
     }
+    cfg, err := ReadConfig()
+    if err != nil {
+        log.Fatalln(err)
+    }
+    LoggerInit(&cfg)
+    LoggerDebug.Printf(cfg.String())
+    // spellig
+    spells, err := GetSpelling(lang, txt)
+    if err != nil {
+        LoggerError.Fatalln(err)
+    }
+    if spells.Exists() {
+        fmt.Println(spells)
+    }
+    // translation
+    trs, err := GetTranslation(langs, txt, cfg.APItr)
+    if err != nil {
+        LoggerError.Fatalln(err)
+    }
+    fmt.Println(trs.String())
 }
