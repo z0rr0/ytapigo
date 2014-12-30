@@ -46,7 +46,6 @@ func main() {
 ```
 
 Download binary file - [ytapigo](https://yadi.sk/d/ysOtugQVdiS6x)
-*It uses stdin*
 
 ### API keys
 
@@ -54,8 +53,9 @@ You should get API KEYs before an using this program, them values have to wroten
 
 ```javascript
 {
-  "apitr": "some key value",
-  "apidict": "some key value"
+  "APItr": "key value",
+  "APIdict": "key value",
+  "Debug": false
 }
 ```
 
