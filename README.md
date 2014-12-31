@@ -58,13 +58,13 @@ You should get API KEYs before an using this program, them values have to wroten
 
 ```javascript
 {
-  "apitr": "some key value",
-  "apidict": "some key value"
+  "APItr": "some key value",
+  "APIdict": "some key value"
 }
 ```
 
-1. **apitr** - API KEY for [Yandex Translate](http://api.yandex.ru/key/form.xml?service=trnsl)
-2. **apidict** - API KEY for [Yandex Dictionary](http://api.yandex.ru/key/form.xml?service=dict)
+1. **APItr** - API KEY for [Yandex Translate](http://api.yandex.ru/key/form.xml?service=trnsl)
+2. **APIdict** - API KEY for [Yandex Dictionary](http://api.yandex.ru/key/form.xml?service=dict)
 
 It was implemented using the services:
 
