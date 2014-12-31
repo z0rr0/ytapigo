@@ -10,42 +10,47 @@ package main
 
 import (
     "github.com/z0rr0/ytapigo"
-    // "os"
+    "os"
 )
 
 func main() {
-    var params []string
-    // first string parameter ignored
+    var (
+        spelling, translation string
+        err error
+    )
 
-    // ru-en direction (default)
-    params = []string{"", "en", "Hi All!"}
-    // params = []string{"", "Hi All!"}
-    ytapigo.GetTr(params)
-    // Привет Всем!!!
-
-    // en-ru direction
-    params = []string{"", "ru", "Привет Всем!"}
-    ytapigo.GetTr(params)
-    // Hi All!
-
-    // get translation article
-    params = []string{"", "noun"}
-
-    ytapigo.GetTr(params)
-    // noun [naʊn] (noun)
-    //     существительное (существительное)
-    //     examples:
-    //             collective noun: собирательное существительное
-    // noun [naʊn] (adjective)
-    //     именной (прилагательное)
-
-    // use params from stdin
-    // ytapigo.GetTr(os.Args)
-
+    // Example #1: en-ru direction (default)
+    spelling, translation, err = ytapigo.GetTr("Hi All!")
+    if err != nil {
+        panic(err)
+    }
+    // Example #2: en-ru direction
+    spelling, translation, err = ytapigo.GetTr("en", "Hi All!")
+    if err != nil {
+        panic(err)
+    }
+    // Example #3: ru-en direction
+    spelling, translation, err = ytapigo.GetTr("en", "Привет Всем!")
+    if err != nil {
+        panic(err)
+    }
+    // Example #4: translation article for a word
+    spelling, translation, err = ytapigo.GetTr("car")
+    if err != nil {
+        panic(err)
+    }
+    // Example #5: read command line parameters
+    spelling, translation, err = ytapigo.GetTr(os.Args[1:])
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println(spelling)
+    fmt.Println(translation)
 }
 ```
 
 Download binary file - [ytapigo](https://yadi.sk/d/ysOtugQVdiS6x)
+*It uses stdin*
 
 ### API keys
 
@@ -53,14 +58,13 @@ You should get API KEYs before an using this program, them values have to wroten
 
 ```javascript
 {
-  "APItr": "key value",
-  "APIdict": "key value",
-  "Debug": false
+  "apitr": "some key value",
+  "apidict": "some key value"
 }
 ```
 
-1. **APItr** - API KEY for [Yandex Translate](http://api.yandex.ru/key/form.xml?service=trnsl)
-2. **APIdict** - API KEY for [Yandex Dictionary](http://api.yandex.ru/key/form.xml?service=dict)
+1. **apitr** - API KEY for [Yandex Translate](http://api.yandex.ru/key/form.xml?service=trnsl)
+2. **apidict** - API KEY for [Yandex Dictionary](http://api.yandex.ru/key/form.xml?service=dict)
 
 It was implemented using the services:
 
