@@ -212,18 +212,16 @@ func GetYtResponse(url string, params *url.Values) ([]byte, error) {
     }
     client := &http.Client{Transport: tr}
     resp, err := client.PostForm(url, *params)
-
     // resp, err := client.Get(url + params.Encode())
-    LoggerDebug.Printf("%v: %v\n", resp.Request.Method, resp.Request.URL)
-
     if err != nil {
         LoggerDebug.Println(err)
-        return result, fmt.Errorf("Network connection problem")
+        return result, fmt.Errorf("ERROR: Network connection problems. Cannot send HTTP request.")
     }
     defer resp.Body.Close()
+    LoggerDebug.Printf("%v: %v\n", resp.Request.Method, resp.Request.URL)
 
     if resp.StatusCode != 200 {
-        return result, fmt.Errorf("Wrong response code=%v", resp.StatusCode)
+        return result, fmt.Errorf("ERROR: Wrong response code=%v", resp.StatusCode)
     }
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil {
