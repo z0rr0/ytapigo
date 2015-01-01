@@ -49,8 +49,10 @@ func main() {
 }
 ```
 
-Download binary file - [ytapigo](https://yadi.sk/d/ysOtugQVdiS6x)
-*It uses stdin*
+Download binary file:
+
+* [Linux x86_64](https://yadi.sk/d/ysOtugQVdiS6x)
+* [RaspberryPI](https://yadi.sk/d/5Aq5XwcJdjRud)
 
 ### API keys
 
