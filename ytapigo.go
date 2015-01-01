@@ -296,22 +296,21 @@ func GetTr(params []string) (string, string, error) {
         wg sync.WaitGroup
         spell_result, tr_result Translater
         spell_err, tr_err error
+        lenparams int
     )
-    lenparams := len(params)
+    lenparams, lang, langs = len(params), "en", "en-ru"
     if lenparams < 1 {
-        return "", "", fmt.Errorf("Too few parameters")
+        return "", "", fmt.Errorf("Too few parameters.")
     } else if lenparams == 1 {
-        lang, langs, txt = "en", "en-ru", params[0]
+        txt = params[0]
     } else {
         switch params[0] {
             case "ru", "ру":
                 lang, langs = "ru", "ru-en"
                 txt = strings.Join(params[1:], " ")
             case "en", "анг":
-                lang, langs = "en", "en-ru"
                 txt = strings.Join(params[1:], " ")
             default:
-                lang, langs = "en", "en-ru"
                 txt = strings.Join(params, " ")
         }
     }
