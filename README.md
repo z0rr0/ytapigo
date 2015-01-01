@@ -51,7 +51,7 @@ func main() {
 
 Download binary file:
 
-* [Linux x86_64](https://yadi.sk/d/ysOtugQVdiS6x)
+* [Linux x86_64](https://yadi.sk/d/GMRRkcMidjTDK)
 * [RaspberryPI](https://yadi.sk/d/5Aq5XwcJdjRud)
 
 ### API keys
