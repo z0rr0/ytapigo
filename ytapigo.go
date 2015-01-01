@@ -199,7 +199,7 @@ func ReadConfig() (YtConfig, error) {
     viper.ReadInConfig()
     ytconfig := YtConfig{viper.GetString("APItr"), viper.GetString("APIdict"), viper.GetBool("Debug")}
     if (ytconfig.APItr == "") || (ytconfig.APIdict == "") {
-        return ytconfig, fmt.Errorf("Can not read API keys value from config file: %v/%v.json", ConfDir, ConfName)
+        return ytconfig, fmt.Errorf("Can not read API keys values from config file: %v/%v.json", ConfDir, ConfName)
     }
     return ytconfig, nil
 }

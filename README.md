@@ -1,7 +1,9 @@
 YtapiGo
 =======
 
-It is a programm to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.ru/translate/). By default **en-ru** direction and UTF-8 encoding are used.
+It is a program to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.ru/translate/). By default **en-ru** direction and UTF-8 encoding are used.
+
+It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see the example #5 below).
 
 ### Usage
 
