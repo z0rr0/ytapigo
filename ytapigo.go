@@ -211,7 +211,11 @@ func GetYtResponse(url string, params *url.Values) ([]byte, error) {
         TLSHandshakeTimeout: 10 * time.Second,
     }
     client := &http.Client{Transport: tr}
-    resp, err := client.Get(url + params.Encode())
+    resp, err := client.PostForm(url, *params)
+
+    // resp, err := client.Get(url + params.Encode())
+    LoggerDebug.Printf("%v: %v\n", resp.Request.Method, resp.Request.URL)
+
     if err != nil {
         LoggerDebug.Println(err)
         return result, fmt.Errorf("Network connection problem")
