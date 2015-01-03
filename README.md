@@ -53,8 +53,11 @@ func main() {
 
 Download binary file:
 
-* [Linux x86_64](https://yadi.sk/d/GMRRkcMidjTDK)
-* [RaspberryPI](https://yadi.sk/d/5Aq5XwcJdjRud)
+* Linux - [amd64](https://yadi.sk/d/mANlwqJDdmGDL), [386](https://yadi.sk/d/2Q_OsAtJdmFzL), [ARM (RaspberryPI)](https://yadi.sk/d/uIAc_mH0dmG2s)
+* FreeBSD - [amd64](https://yadi.sk/d/GqdLOnP9dmG4f), [386](https://yadi.sk/d/1Mta4z7ldmG5J), [ARM (RaspberryPI)](https://yadi.sk/d/sp4e8YoHdmG6u)
+* Darwin (MacOS) - [amd64](https://yadi.sk/d/ljuqozwtdmG7i), [386](https://yadi.sk/d/1su-PyKcdmGAo)
+* Windows - [amd64](https://yadi.sk/d/cRqNHY-VdmGJK), [386](https://yadi.sk/d/49CcRmhMdmGHC)
+
 
 ### Dependencies
 
