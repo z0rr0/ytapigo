@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Ytapigo by z0rr0</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Ytapigo</h1>
+        <h2>ytapigo, api, translate, yandex</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/z0rr0/ytapigo/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/z0rr0/ytapigo/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/z0rr0/ytapigo" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="ytapigo" class="anchor" href="#ytapigo" aria-hidden="true"><span class="octicon octicon-link"></span></a>YtapiGo</h1>
+
+<p>It is a program to translate and check spelling using the console, it based on <a href="http://api.yandex.ru/translate/">Yandex Translate API</a>. By default <strong>en-ru</strong> direction and UTF-8 encoding are used.</p>
+
+<p>It's a clone of the project <a href="http://z0rr0.github.io/ytapi/">Ytapi</a> but on the <a href="http://golang.org/">Go programming language</a>. This is created as a package/library, but it can be used as a separate program (see the example #5 below).</p>
+
+<h3>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
+
+<div class="highlight highlight-go"><pre><span class="pl-k">package</span> main
+
+<span class="pl-k">import</span> (
+    <span class="pl-s1"><span class="pl-pds">"</span>github.com/z0rr0/ytapigo<span class="pl-pds">"</span></span>
+    <span class="pl-s1"><span class="pl-pds">"</span>os<span class="pl-pds">"</span></span>
+)
+
+<span class="pl-k">func</span> <span class="pl-en">main</span>() {
+    <span class="pl-s3">var</span> (
+        spelling, translation <span class="pl-st">string</span>
+        err <span class="pl-st">error</span>
+    )
+
+    <span class="pl-c">// Example #1: en-ru direction (default)</span>
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
+    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
+        <span class="pl-s3">panic</span>(err)
+    }
+    <span class="pl-c">// Example #2: en-ru direction</span>
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
+    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
+        <span class="pl-s3">panic</span>(err)
+    }
+    <span class="pl-c">// Example #3: ru-en direction</span>
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Привет Всем!<span class="pl-pds">"</span></span>)
+    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
+        <span class="pl-s3">panic</span>(err)
+    }
+    <span class="pl-c">// Example #4: translation article for a word</span>
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>car<span class="pl-pds">"</span></span>)
+    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
+        <span class="pl-s3">panic</span>(err)
+    }
+    <span class="pl-c">// Example #5: read command line parameters</span>
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(os.<span class="pl-vo">Args</span>[<span class="pl-c1">1</span>:])
+    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
+        <span class="pl-s3">panic</span>(err)
+    }
+    fmt.<span class="pl-s3">Println</span>(spelling)
+    fmt.<span class="pl-s3">Println</span>(translation)
+}</pre></div>
+
+<p>Download binary file:</p>
+
+<ul>
+<li><a href="https://yadi.sk/d/GMRRkcMidjTDK">Linux x86_64</a></li>
+<li><a href="https://yadi.sk/d/5Aq5XwcJdjRud">RaspberryPI</a></li>
+</ul>
+
+<h3>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h3>
+
+<ul>
+<li>
+<a href="http://golang.org/">Go</a> is an open source programming language that makes it easy to build simple, reliable, and efficient software.</li>
+<li>
+<a href="https://github.com/spf13/viper">Viper</a> is a complete configuration solution for go applications.</li>
+</ul>
+
+<h3>
+<a id="api-keys" class="anchor" href="#api-keys" aria-hidden="true"><span class="octicon octicon-link"></span></a>API keys</h3>
+
+<p>You should get API KEYs before an using this program, them values have to wroten to a file <strong>$HOME/.ytapigo.json</strong> (see the example <code>ytapigo_example.json</code>):</p>
+
+<div class="highlight highlight-javascript"><pre>{
+  <span class="pl-s1"><span class="pl-pds">"</span>APItr<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
+  <span class="pl-s1"><span class="pl-pds">"</span>APIdict<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>
+}</pre></div>
+
+<ol>
+<li>
+<strong>APItr</strong> - API KEY for <a href="http://api.yandex.ru/key/form.xml?service=trnsl">Yandex Translate</a>
+</li>
+<li>
+<strong>APIdict</strong> - API KEY for <a href="http://api.yandex.ru/key/form.xml?service=dict">Yandex Dictionary</a>
+</li>
+</ol>
+
+<p>It was implemented using the services:</p>
+
+<ul>
+<li><a href="http://api.yandex.ru/dictionary/">Yandex Dictionary</a></li>
+<li><a href="http://api.yandex.ru/translate/">Yandex Translate</a></li>
+<li><a href="http://api.yandex.ru/speller/">Yandex Speller</a></li>
+</ul>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
