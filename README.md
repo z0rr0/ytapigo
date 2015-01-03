@@ -56,6 +56,11 @@ Download binary file:
 * [Linux x86_64](https://yadi.sk/d/GMRRkcMidjTDK)
 * [RaspberryPI](https://yadi.sk/d/5Aq5XwcJdjRud)
 
+### Dependencies
+
+* [Go](http://golang.org/) is an open source programming language that makes it easy to build simple, reliable, and efficient software.
+* [Viper](https://github.com/spf13/viper) is a complete configuration solution for go applications.
+
 ### API keys
 
 You should get API KEYs before an using this program, them values have to wroten to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`):
