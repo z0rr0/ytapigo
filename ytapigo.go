@@ -12,6 +12,7 @@ import (
     "strings"
     "time"
     "sync"
+    // "sort"
 )
 func CheckYT() string {
     return TestMsg
@@ -57,10 +58,12 @@ type Translater interface {
 type YtConfig struct {
     APItr string
     APIdict string
+    APIlangs map[string][]string
+    Default string
     Debug bool
 }
 func (yt YtConfig) String() string {
-    return fmt.Sprintf("\nConfig:\n APItr=%v\n APIdict=%v\n Debug=%v", yt.APItr, yt.APIdict, yt.Debug)
+    return fmt.Sprintf("\nConfig:\n APItr=%v\n APIdict=%v\n Default=%v\n APIlangs=%v\n Debug=%v", yt.APItr, yt.APIdict, yt.Default, yt.APIlangs, yt.Debug)
 }
 type JsonSpelResp struct {
     Word string   `json:"word"`
@@ -104,7 +107,7 @@ type JsonTrDict struct {
 type JsonSpelResps []JsonSpelResp
 
 func (jspell *JsonSpelResp) Exists() bool {
-    if len(jspell.S) > 0 {
+    if (len(jspell.Word) > 0) || (len(jspell.S) > 0) {
         return true
     }
     return false
@@ -193,14 +196,36 @@ func (jstr *JsonTrDict) String() string {
 }
 // read configuration file
 func ReadConfig() (YtConfig, error) {
+    get_langs := func(langs map[string]interface{}) map[string][]string {
+        var it []interface{}
+        result := make(map[string][]string, len(langs))
+        for i, k := range langs {
+            it = k.([]interface{})
+            result[i] = make([]string, len(it), len(it))
+            for j, t := range it {
+                result[i][j] = t.(string)
+                // sorting
+                // for p := j-1; (p >= 0) && (result[i][p] > result[i][p+1]); p-- {
+                //     result[i][p], result[i][p+1] = result[i][p+1], result[i][p]
+                // }
+            }
+        }
+        return result
+    }
     viper.SetConfigName(ConfName)
     viper.SetConfigType("json")
     viper.AddConfigPath(ConfDir)
     viper.ReadInConfig()
-    ytconfig := YtConfig{viper.GetString("APItr"), viper.GetString("APIdict"), viper.GetBool("Debug")}
+    ytconfig := YtConfig{
+        viper.GetString("APItr"),
+        viper.GetString("APIdict"),
+        get_langs(viper.GetStringMap("APIlangs")),
+        viper.GetString("Default"),
+        viper.GetBool("Debug")}
     if (ytconfig.APItr == "") || (ytconfig.APIdict == "") {
         return ytconfig, fmt.Errorf("Can not read API keys values from config file: %v/%v.json", ConfDir, ConfName)
     }
+    // fmt.Println(ytconfig)
     return ytconfig, nil
 }
 
@@ -287,6 +312,39 @@ func GetTranslation(lang string, txt string, ytconf *YtConfig) (Translater, erro
     return result, nil
 }
 
+func GetSourceLang(cfg *YtConfig, direction string) (string, error) {
+    langs := strings.SplitN(direction, "-", 2)
+    if (len(langs) > 0) && (len(langs[0]) > 0) {
+        return langs[0], nil
+    }
+    return "", fmt.Errorf("Cannot detect translation direction. Please check config file: %v/%v.json", ConfDir, ConfName)
+}
+
+// return translation direction
+func CheckLang(cfg *YtConfig, lang string) (string, string, bool, error) {
+    direction, found := "", false
+    for i, lv := range cfg.APIlangs {
+        if lang == i {
+            direction, found = i, true
+            break
+        }
+        for _, v := range lv {
+            if lang == v {
+                direction, found = i, true
+                break
+            }
+        }
+        if found {
+            break
+        }
+    }
+    if direction == "" {
+        direction = cfg.Default
+    }
+    source, err := GetSourceLang(cfg, direction)
+    return source, direction, found, err
+}
+
 // main YtapiGo function
 func GetTr(params []string) (string, string, error) {
     var (
@@ -295,34 +353,45 @@ func GetTr(params []string) (string, string, error) {
         spell_result, tr_result Translater
         spell_err, tr_err error
         lenparams int
+        tr_found bool
     )
-    lenparams, lang, langs = len(params), "en", "en-ru"
-    if lenparams < 1 {
-        return "", "", fmt.Errorf("Too few parameters.")
-    } else if lenparams == 1 {
-        txt = params[0]
-    } else {
-        switch params[0] {
-            case "ru", "ру":
-                lang, langs = "ru", "ru-en"
-                txt = strings.Join(params[1:], " ")
-            case "en", "анг":
-                txt = strings.Join(params[1:], " ")
-            default:
-                txt = strings.Join(params, " ")
-        }
-    }
     cfg, err := ReadConfig()
     if err != nil {
         return "", "", err
     }
     LoggerInit(&cfg)
 
-    wg.Add(1)
-    go func(i *Translater, e *error, l string, t string) {
-        defer wg.Done()
-        *i, *e = GetSpelling(l, t)
-    }(&spell_result, &spell_err, lang, txt)
+    lenparams = len(params)
+    if lenparams < 1 {
+        return "", "", fmt.Errorf("Too few parameters.")
+    } else if lenparams == 1 {
+        langs, tr_found = cfg.Default, true
+        lang, tr_err = GetSourceLang(&cfg, langs)
+        txt = params[0]
+    } else {
+        lang, langs, tr_found, tr_err = CheckLang(&cfg, params[0])
+        if tr_found {
+            txt = strings.Join(params[1:], " ")
+        } else {
+            txt = strings.Join(params, " ")
+        }
+    }
+    if tr_err != nil {
+        return "", "", tr_err
+    }
+    LoggerDebug.Printf("source=%v, direction=%v, found=%v", lang, langs, tr_found)
+
+    switch lang {
+        case "en", "ru", "uk":
+            wg.Add(1)
+            go func(i *Translater, e *error, l string, t string) {
+                defer wg.Done()
+                *i, *e = GetSpelling(l, t)
+            }(&spell_result, &spell_err, lang, txt)
+        default:
+            spell_result = &JsonSpelResps{}
+            LoggerDebug.Println("Spelling is skipped")
+    }
 
     wg.Add(1)
     go func(i *Translater, e *error, l string, t string, c *YtConfig) {
