@@ -12,7 +12,7 @@ import (
     "strings"
     "time"
     "sync"
-    // "sort"
+    "sort"
 )
 func CheckYT() string {
     return TestMsg
@@ -25,10 +25,12 @@ const (
 )
 var (
     // 0-Spelling, 1-Translation, 2-Dict
-    YtJsonURLs = [3]string{
+    YtJsonURLs = [5]string{
         "http://speller.yandex.net/services/spellservice.json/checkText?",
         "https://translate.yandex.net/api/v1.5/tr.json/translate?",
         "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?",
+        "https://translate.yandex.net/api/v1.5/tr.json/getLangs?",
+        "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs?",
     }
     LoggerError *log.Logger
     LoggerDebug *log.Logger
@@ -58,13 +60,21 @@ type Translater interface {
 type YtConfig struct {
     APItr string
     APIdict string
-    APIlangs map[string][]string
+    APIlangs map[string]map[string]string
     Default string
     Debug bool
 }
 func (yt YtConfig) String() string {
     return fmt.Sprintf("\nConfig:\n APItr=%v\n APIdict=%v\n Default=%v\n APIlangs=%v\n Debug=%v", yt.APItr, yt.APIdict, yt.Default, yt.APIlangs, yt.Debug)
 }
+// list of langs from dictionary and translate
+type LangsList []string
+
+type LangsListTr struct {
+    Dirs []string           `json:"dirs"`
+    Langs map[string]string `json:"langs"`
+}
+
 type JsonSpelResp struct {
     Word string   `json:"word"`
     S []string    `json:"s"`
@@ -194,20 +204,55 @@ func (jstr *JsonTrDict) String() string {
 
     return strings.Join(result, "\n")
 }
+
+func (ltr LangsListTr) ShowDesc() string {
+    const n int = 3
+    var (
+        collen, counter int
+    )
+    counter = len(ltr.Langs)
+    i, desc_str := 0, make([]string, counter)
+    for k, v := range ltr.Langs {
+        if len(v) > 0 {
+            desc_str[i] = fmt.Sprintf("%v - %v", k, v)
+            i++
+        }
+    }
+    sort.Strings(desc_str)
+
+    if (counter % n) != 0 {
+        collen = counter / n + 1
+    } else {
+        collen = counter / n
+    }
+    output := make([]string, collen)
+    for j := 0; j < collen; j++ {
+        switch {
+            case j+2*collen < counter:
+                output[j] = fmt.Sprintf("%-25v %-25v %-25v", desc_str[j], desc_str[j+collen], desc_str[j+2*collen])
+            case j+collen < counter:
+                output[j] = fmt.Sprintf("%-25v %-25v", desc_str[j], desc_str[j+collen])
+            default:
+                output[j] = fmt.Sprintf("%-25v", desc_str[j])
+        }
+    }
+    return strings.Join(output, "\n")
+}
+
 // read configuration file
 func ReadConfig() (YtConfig, error) {
-    get_langs := func(langs map[string]interface{}) map[string][]string {
-        var it []interface{}
-        result := make(map[string][]string, len(langs))
+    get_langs := func(langs map[string]interface{}) map[string]map[string]string {
+        var (
+            it []interface{}
+            s string
+        )
+        result := make(map[string]map[string]string, len(langs))
         for i, k := range langs {
             it = k.([]interface{})
-            result[i] = make([]string, len(it), len(it))
-            for j, t := range it {
-                result[i][j] = t.(string)
-                // sorting
-                // for p := j-1; (p >= 0) && (result[i][p] > result[i][p+1]); p-- {
-                //     result[i][p], result[i][p+1] = result[i][p+1], result[i][p]
-                // }
+            result[i] = make(map[string]string, len(it))
+            for _, t := range it {
+                s = t.(string)
+                result[i][s] = s
             }
         }
         return result
@@ -223,9 +268,8 @@ func ReadConfig() (YtConfig, error) {
         viper.GetString("Default"),
         viper.GetBool("Debug")}
     if (ytconfig.APItr == "") || (ytconfig.APIdict == "") {
-        return ytconfig, fmt.Errorf("Can not read API keys values from config file: %v/%v.json", ConfDir, ConfName)
+        return ytconfig, fmt.Errorf("Can not read API keys values from the config file: %v/%v.json", ConfDir, ConfName)
     }
-    // fmt.Println(ytconfig)
     return ytconfig, nil
 }
 
@@ -279,14 +323,14 @@ func GetSpelling(lang string, txt string) (Translater, error) {
     return result, nil
 }
 // get Translation or a dictionary article
-func GetTranslation(lang string, txt string, ytconf *YtConfig) (Translater, error) {
+func GetTranslation(lang string, txt string, ytconf *YtConfig, tr bool) (Translater, error) {
     LoggerDebug.Println("Call GetTranslation")
     var (
         result Translater
         trurl string
         params url.Values
     )
-    if word_counter := len(strings.Split(txt, " ")); word_counter > 1 {
+    if word_counter := len(strings.Split(txt, " ")); tr || (word_counter > 1) {
         result = &JsonTrResp{}
         trurl, params = YtJsonURLs[1], url.Values{
             "lang": {lang},
@@ -312,12 +356,45 @@ func GetTranslation(lang string, txt string, ytconf *YtConfig) (Translater, erro
     return result, nil
 }
 
+func GetLangsDict(ytconf *YtConfig, c chan string) {
+    LoggerDebug.Println("Call GetLangsDict")
+    params := url.Values{"key": {ytconf.APIdict}}
+    body, err := GetYtResponse(YtJsonURLs[4], &params)
+    if err != nil {
+        LoggerError.Println(err)
+        c <- ""
+    }
+    var result LangsList
+    if err := json.Unmarshal(body, &result); err != nil {
+        LoggerError.Println(err)
+        c <- ""
+    }
+    // set lang map here by a link
+    c <- fmt.Sprintf("Directions of the dictionary:\n%v", strings.Join(result, ", "))
+}
+func GetLangsTr(ytconf *YtConfig, c chan string) {
+    LoggerDebug.Println("Call GetLangsTr")
+    params := url.Values{"key": {ytconf.APItr}, "ui": {"en"}}
+    body, err := GetYtResponse(YtJsonURLs[3], &params)
+    if err != nil {
+        LoggerError.Println(err)
+        c <- ""
+    }
+    var result LangsListTr
+    if err := json.Unmarshal(body, &result); err != nil {
+        LoggerError.Println(err)
+        c <- ""
+    }
+    // set lang map here by a link
+    c <- fmt.Sprintf("Directions of the translations:\n%v\nDescription:\n%v", strings.Join(result.Dirs, ", "), result.ShowDesc())
+}
+
 func GetSourceLang(cfg *YtConfig, direction string) (string, error) {
     langs := strings.SplitN(direction, "-", 2)
     if (len(langs) > 0) && (len(langs[0]) > 0) {
         return langs[0], nil
     }
-    return "", fmt.Errorf("Cannot detect translation direction. Please check config file: %v/%v.json", ConfDir, ConfName)
+    return "", fmt.Errorf("Cannot detect translation direction. Please check the config file: %v/%v.json", ConfDir, ConfName)
 }
 
 // return translation direction
@@ -328,17 +405,13 @@ func CheckLang(cfg *YtConfig, lang string) (string, string, bool, error) {
             direction, found = i, true
             break
         }
-        for _, v := range lv {
-            if lang == v {
-                direction, found = i, true
-                break
-            }
-        }
-        if found {
+        _, ok := lv[lang]
+        if ok {
+            direction, found = i, true
             break
         }
     }
-    if direction == "" {
+    if !found {
         direction = cfg.Default
     }
     source, err := GetSourceLang(cfg, direction)
@@ -394,10 +467,10 @@ func GetTr(params []string) (string, string, error) {
     }
 
     wg.Add(1)
-    go func(i *Translater, e *error, l string, t string, c *YtConfig) {
+    go func(i *Translater, e *error, l string, t string, c *YtConfig, tr bool) {
         defer wg.Done()
-        *i, *e = GetTranslation(l, t, c)
-    }(&tr_result, &tr_err, langs, txt, &cfg)
+        *i, *e = GetTranslation(l, t, c, tr)
+    }(&tr_result, &tr_err, langs, txt, &cfg, false)
 
     wg.Wait()
     if spell_err != nil {
@@ -410,4 +483,31 @@ func GetTr(params []string) (string, string, error) {
         return spell_result.String(), tr_result.String(), nil
     }
     return "", tr_result.String(), nil
+}
+
+// It returns help string
+func ShowHelp(name string) string {
+    var program string
+    if name == "" {
+        program = "main"
+    } else {
+        program = name
+    }
+    return fmt.Sprintf("YtapiGo is a program to translate and check spelling using the console, it based on Yandex Translate API.\nParameters:\n\t-help\t- help message\n\t-langs\t- show available translation directions and languages\nExamples:\n\t# input explicit translation direction and text\n\t%v [translation direction] text\n\t# input only text message, a default translation direction from the cofig file will be used\n\t%v text", program, program)
+}
+
+// It returns a list of available languages
+func GetLangs() (string, error) {
+    cfg, err := ReadConfig()
+    if err != nil {
+        return "", err
+    }
+    LoggerInit(&cfg)
+
+    langs_dic, langs_tr := make(chan string), make(chan string)
+    go GetLangsDict(&cfg, langs_dic)
+    go GetLangsTr(&cfg, langs_tr)
+    str_dic, str_tr := <-langs_dic, <-langs_tr
+
+    return fmt.Sprintf("%v\n%v", str_dic, str_tr), nil
 }

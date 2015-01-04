@@ -5,6 +5,8 @@ It is a program to translate and check spelling using the console, it based on [
 
 It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see the example #5 below).
 
+A spell check is supported only for English, Russian and Ukrainian languages.
+
 ### Usage
 
 ```go
@@ -66,20 +68,21 @@ Download binary file:
 
 ### API keys
 
-You should get API KEYs before an using this program, them values have to wroten to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`):
+You should get API KEYs before an using this program, them values have to wroten to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one has a list of possible aliases.
 
 ```javascript
 {
   "APItr": "some key value",
-  "APIdict": "some key value"
+  "APIdict": "some key value",
+  "Default": "en-ru"
 }
 ```
 
-1. **APItr** - API KEY for [Yandex Translate](http://api.yandex.ru/key/form.xml?service=trnsl)
-2. **APIdict** - API KEY for [Yandex Dictionary](http://api.yandex.ru/key/form.xml?service=dict)
+1. **APItr** - API KEY for [Yandex Translate](https://tech.yandex.ru/keys/get/?service=trnsl)
+2. **APIdict** - API KEY for [Yandex Dictionary](https://tech.yandex.ru/keys/get/?service=dict)
 
 It was implemented using the services:
 
-* [Yandex Dictionary](http://api.yandex.ru/dictionary/)
-* [Yandex Translate](http://api.yandex.ru/translate/)
+* [Yandex Dictionary](http://api.yandex.com/dictionary/)
+* [Yandex Translate](http://api.yandex.com/translate/)
 * [Yandex Speller](http://api.yandex.ru/speller/)
