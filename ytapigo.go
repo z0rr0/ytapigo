@@ -20,6 +20,7 @@ import (
     "time"
     "sync"
     "sort"
+    "regexp"
 )
 
 // test method
@@ -42,7 +43,9 @@ var (
         "https://translate.yandex.net/api/v1.5/tr.json/getLangs?",
         "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs?",
     }
-    // should be initiated in LoggerInit before an use.
+    // language direction regexp pattern
+    LdPattern *regexp.Regexp = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
+    // should be initiated in LoggerInit before any use.
     LoggerError *log.Logger
     LoggerDebug *log.Logger
 )
@@ -506,10 +509,11 @@ func CheckDirection(cfg *YtConfig, direction string) (bool, bool) {
 // It verifies translation direction, checks its support by
 // dictionary and translate API, but additionally considers users' aliases.
 func CheckAliasDirection(cfg *YtConfig, direction string, langs *string, isalias *bool) (bool, bool) {
+    *langs, *isalias = cfg.Default, false
     if len(direction) == 0 {
         return false, false
     }
-    alias := ""
+    alias := direction
     for k, v := range cfg.Aliases {
         if k == direction {
             alias = k
@@ -521,23 +525,21 @@ func CheckAliasDirection(cfg *YtConfig, direction string, langs *string, isalias
             break
         }
     }
-    if alias == "" {
-        alias = direction
-    }
 
     langs_dic, langs_tr := make(chan LangChecker), make(chan LangChecker)
     go GetLangsList(cfg, true, langs_dic)
     go GetLangsList(cfg, false, langs_tr)
     lch_dic, lch_tr := <-langs_dic, <-langs_tr
 
-    lchd_ok, lchtr_ok := lch_dic.Contains(alias), lch_tr.Contains(alias)
-    if (!lchd_ok) && (!lchtr_ok) {
-        LoggerDebug.Printf("Not found lang for alias %v", alias)
-    } else {
-        *langs, *isalias = alias, true
-        return lchd_ok, lchtr_ok
+    if LdPattern.MatchString(alias) {
+        LoggerDebug.Printf("Maybe it is a direction \"%v\"", alias)
+        lchd_ok, lchtr_ok := lch_dic.Contains(alias), lch_tr.Contains(alias)
+        if lchd_ok || lchtr_ok {
+            *langs, *isalias = alias, true
+            return lchd_ok, lchtr_ok
+        }
     }
-    *langs, *isalias = cfg.Default, false
+    LoggerDebug.Printf("Not found lang for alias \"%v\", default direction \"%v\" will be used.", alias, cfg.Default)
     return lch_dic.Contains(cfg.Default), lch_tr.Contains(cfg.Default)
 }
 
@@ -592,7 +594,7 @@ func GetTr(params []string) (string, string, error) {
             txt = strings.Join(params, " ")
         }
     }
-    LoggerDebug.Printf("direction=%v, alias=%v (%v, %v), txt=%v", langs, alias, ddir_ok, tdir_ok, txt)
+    LoggerDebug.Printf("direction=%v, alias=%v (%v, %v)", langs, alias, ddir_ok, tdir_ok)
     source, spell_err = GetSourceLang(&cfg, langs)
     if source, spell_err = GetSourceLang(&cfg, langs); spell_err == nil {
         switch source {
