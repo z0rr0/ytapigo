@@ -11,6 +11,17 @@ func TestCheckYT(t *testing.T) {
     }
 }
 
+func ExampleStringBinarySearch() {
+    var strs = []string{"aaa", "aab", "aac", "aad"}
+    if i := StringBinarySearch(strs, "aac", 0, len(strs)-1); i < 0 {
+        fmt.Println("Not found")
+    } else {
+        fmt.Printf("Found: strs[%v]=%v \n", i, strs[i])
+    }
+    // Output:
+    // Found: strs[2]=aac
+}
+
 func TestGetTr(t *testing.T) {
     var (
         examples_en = map[string][]string{"the lion": {"", "Лев"}, "the car": {"", "автомобиль"}}

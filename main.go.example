@@ -1,0 +1,37 @@
+package main
+
+import (
+    "fmt"
+    "github.com/z0rr0/ytapigo"
+    "os"
+    "flag"
+)
+
+func main() {
+    defer func() {
+        if r := recover(); r != nil {
+            fmt.Println(r)
+        }
+    }()
+    langs_msg := flag.Bool("langs", false, "show available languages")
+    help_msg := flag.Bool("help", false, "help message")
+    flag.Parse()
+
+    if *help_msg {
+        fmt.Println(ytapigo.ShowHelp(os.Args[0]))
+    } else {
+        if *langs_msg {
+            langs, err := ytapigo.GetLangs()
+            if err != nil {
+                panic(err)
+            }
+            fmt.Println(langs)
+        } else {
+            spelling, translation, err := ytapigo.GetTr(flag.Args())
+            if err != nil {
+                panic(err)
+            }
+            fmt.Printf("%v\n%v\n", spelling, translation)
+        }
+    }
+}
