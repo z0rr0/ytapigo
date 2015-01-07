@@ -55,6 +55,13 @@ Download binary file:
 * Darwin (MacOS) - [amd64](https://yadi.sk/d/_dyoBofEdpu3x), [386](https://yadi.sk/d/5zNaMAwBdpu2R)
 * Windows - [amd64](https://yadi.sk/d/lBBFPIBcdpuF8), [386](https://yadi.sk/d/HehMeTSvdpuCh)
 
+Usage:
+
+```shell
+chmod u+x main
+./main en-fr Hello dear fried!
+# output: Bonjour chers frit!
+```
 
 ### Dependencies
 
