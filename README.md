@@ -3,7 +3,7 @@ YtapiGo
 
 It is a program to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.ru/translate/). By default UTF-8 encoding are used.
 
-It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main_example.go).
+It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main.go.example).
 
 A spell check is supported only for English, Russian and Ukrainian languages.
 
@@ -29,21 +29,16 @@ func main() {
         panic(err)
     }
     // Example #2: en-ru direction
-    spelling, translation, err = ytapigo.GetTr("en", "Hi All!")
+    spelling, translation, err = ytapigo.GetTr("en-ru", "Hi All!")
     if err != nil {
         panic(err)
     }
-    // Example #3: ru-en direction
-    spelling, translation, err = ytapigo.GetTr("en", "Привет Всем!")
+    // Example #3: translation article for a word
+    spelling, translation, err = ytapigo.GetTr("en-ru", "car")
     if err != nil {
         panic(err)
     }
-    // Example #4: translation article for a word
-    spelling, translation, err = ytapigo.GetTr("car")
-    if err != nil {
-        panic(err)
-    }
-    // Example #5: read command line parameters
+    // Example #4: read command line parameters
     spelling, translation, err = ytapigo.GetTr(os.Args[1:])
     if err != nil {
         panic(err)
@@ -55,10 +50,10 @@ func main() {
 
 Download binary file:
 
-* Linux - [amd64](https://yadi.sk/d/mANlwqJDdmGDL), [386](https://yadi.sk/d/2Q_OsAtJdmFzL), [ARM (RaspberryPI)](https://yadi.sk/d/uIAc_mH0dmG2s)
-* FreeBSD - [amd64](https://yadi.sk/d/GqdLOnP9dmG4f), [386](https://yadi.sk/d/1Mta4z7ldmG5J), [ARM (RaspberryPI)](https://yadi.sk/d/sp4e8YoHdmG6u)
-* Darwin (MacOS) - [amd64](https://yadi.sk/d/ljuqozwtdmG7i), [386](https://yadi.sk/d/1su-PyKcdmGAo)
-* Windows - [amd64](https://yadi.sk/d/cRqNHY-VdmGJK), [386](https://yadi.sk/d/49CcRmhMdmGHC)
+* Linux - [amd64](https://yadi.sk/d/DkVXPeuIdpu8Z), [386](https://yadi.sk/d/VbPP1mgndpu7v), [ARM (RaspberryPI)](https://yadi.sk/d/raQBuVvmdpu9U)
+* FreeBSD - [amd64](https://yadi.sk/d/1Rfh1rd5dpu5z), [386](https://yadi.sk/d/UbezQACmdpu4w), [ARM (RaspberryPI)](https://yadi.sk/d/3o-5wUVhdpu6q)
+* Darwin (MacOS) - [amd64](https://yadi.sk/d/_dyoBofEdpu3x), [386](https://yadi.sk/d/5zNaMAwBdpu2R)
+* Windows - [amd64](https://yadi.sk/d/lBBFPIBcdpuF8), [386](https://yadi.sk/d/HehMeTSvdpuCh)
 
 
 ### Dependencies
@@ -68,14 +63,14 @@ Download binary file:
 
 ### API keys
 
-You should get API KEYs before an using this program, them values have to wroten to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one can have a list of possible user's aliases.
+You should get API KEYs before an using this program, them values have to be written to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one can have a list of possible user's aliases.
 
 ```javascript
 {
   "APItr": "some key value",
   "APIdict": "some key value",
   "Aliases": {                      // User's languages aliases
-    "en-ru": ["англ", "en"],
+    "en-ru": ["en", "англ"],
     "ru-en": ["ru", "ру"],
   },
   "Default": "en-ru"                // default translation direction
