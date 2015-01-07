@@ -575,7 +575,7 @@ func GetTr(params []string) (string, string, error) {
         ddir_ok, tdir_ok = CheckDirection(&cfg, cfg.Default)
         if !ddir_ok {
             LoggerDebug.Println("Unknown translation direction")
-            return "", "", fmt.Errorf("Cannot verify 'Default' translation direction. Please check the config file: %v/%v.json", ConfDir, ConfName)
+            return "", "", fmt.Errorf("Cannot verify 'Default' translation direction. Please check a language direction prefix or the config file: %v/%v.json", ConfDir, ConfName)
         }
         langs, alias = cfg.Default, false
         txt = params[0]
@@ -583,11 +583,11 @@ func GetTr(params []string) (string, string, error) {
         ddir_ok, tdir_ok = CheckAliasDirection(&cfg, params[0], &langs, &alias)
         if (!ddir_ok) && (!tdir_ok) {
             LoggerDebug.Println("Unknown translation direction")
-            return "", "", fmt.Errorf("Cannot verify translation direction. Please check the config file: %v/%v.json", ConfDir, ConfName)
+            return "", "", fmt.Errorf("Cannot verify translation direction. Please check a language direction prefix or the config file: %v/%v.json", ConfDir, ConfName)
         }
         if alias {
-            if (lenparams == 2) && (!ddir_ok) {
-                return "", "", fmt.Errorf("Cannot verify dictionary direction. Please check the config file: %v/%v.json", ConfDir, ConfName)
+            if (len(strings.SplitN(params[1], " ", 2)) == 1) && (!ddir_ok) {
+                return "", "", fmt.Errorf("Cannot verify dictionary direction. Please check a language direction prefix or the config file: %v/%v.json", ConfDir, ConfName)
             }
             txt = strings.Join(params[1:], " ")
         } else {
