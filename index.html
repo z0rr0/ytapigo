@@ -31,9 +31,11 @@
         <h1>
 <a id="ytapigo" class="anchor" href="#ytapigo" aria-hidden="true"><span class="octicon octicon-link"></span></a>YtapiGo</h1>
 
-<p>It is a program to translate and check spelling using the console, it based on <a href="http://api.yandex.ru/translate/">Yandex Translate API</a>. By default <strong>en-ru</strong> direction and UTF-8 encoding are used.</p>
+<p>It is a program to translate and check spelling using the console, it based on <a href="http://api.yandex.ru/translate/">Yandex Translate API</a>. By default UTF-8 encoding are used.</p>
 
-<p>It's a clone of the project <a href="http://z0rr0.github.io/ytapi/">Ytapi</a> but on the <a href="http://golang.org/">Go programming language</a>. This is created as a package/library, but it can be used as a separate program (see the example #5 below).</p>
+<p>It's a clone of the project <a href="http://z0rr0.github.io/ytapi/">Ytapi</a> but on the <a href="http://golang.org/">Go programming language</a>. This is created as a package/library, but it can be used as a separate program (see main.go.example).</p>
+
+<p>A spell check is supported only for English, Russian and Ukrainian languages.</p>
 
 <h3>
 <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
@@ -57,21 +59,16 @@
         <span class="pl-s3">panic</span>(err)
     }
     <span class="pl-c">// Example #2: en-ru direction</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
     <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
         <span class="pl-s3">panic</span>(err)
     }
-    <span class="pl-c">// Example #3: ru-en direction</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Привет Всем!<span class="pl-pds">"</span></span>)
+    <span class="pl-c">// Example #3: translation article for a word</span>
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>car<span class="pl-pds">"</span></span>)
     <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
         <span class="pl-s3">panic</span>(err)
     }
-    <span class="pl-c">// Example #4: translation article for a word</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>car<span class="pl-pds">"</span></span>)
-    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
-        <span class="pl-s3">panic</span>(err)
-    }
-    <span class="pl-c">// Example #5: read command line parameters</span>
+    <span class="pl-c">// Example #4: read command line parameters</span>
     spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(os.<span class="pl-vo">Args</span>[<span class="pl-c1">1</span>:])
     <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
         <span class="pl-s3">panic</span>(err)
@@ -83,13 +80,13 @@
 <p>Download binary file:</p>
 
 <ul>
-<li>Linux - <a href="https://yadi.sk/d/mANlwqJDdmGDL">amd64</a>, <a href="https://yadi.sk/d/2Q_OsAtJdmFzL">386</a>, <a href="https://yadi.sk/d/uIAc_mH0dmG2s">ARM (RaspberryPI)</a>
+<li>Linux - <a href="https://yadi.sk/d/DkVXPeuIdpu8Z">amd64</a>, <a href="https://yadi.sk/d/VbPP1mgndpu7v">386</a>, <a href="https://yadi.sk/d/raQBuVvmdpu9U">ARM (RaspberryPI)</a>
 </li>
-<li>FreeBSD - <a href="https://yadi.sk/d/GqdLOnP9dmG4f">amd64</a>, <a href="https://yadi.sk/d/1Mta4z7ldmG5J">386</a>, <a href="https://yadi.sk/d/sp4e8YoHdmG6u">ARM (RaspberryPI)</a>
+<li>FreeBSD - <a href="https://yadi.sk/d/1Rfh1rd5dpu5z">amd64</a>, <a href="https://yadi.sk/d/UbezQACmdpu4w">386</a>, <a href="https://yadi.sk/d/3o-5wUVhdpu6q">ARM (RaspberryPI)</a>
 </li>
-<li>Darwin (MacOS) - <a href="https://yadi.sk/d/ljuqozwtdmG7i">amd64</a>, <a href="https://yadi.sk/d/1su-PyKcdmGAo">386</a>
+<li>Darwin (MacOS) - <a href="https://yadi.sk/d/_dyoBofEdpu3x">amd64</a>, <a href="https://yadi.sk/d/5zNaMAwBdpu2R">386</a>
 </li>
-<li>Windows - <a href="https://yadi.sk/d/cRqNHY-VdmGJK">amd64</a>, <a href="https://yadi.sk/d/49CcRmhMdmGHC">386</a>
+<li>Windows - <a href="https://yadi.sk/d/lBBFPIBcdpuF8">amd64</a>, <a href="https://yadi.sk/d/HehMeTSvdpuCh">386</a>
 </li>
 </ul>
 
@@ -106,27 +103,32 @@
 <h3>
 <a id="api-keys" class="anchor" href="#api-keys" aria-hidden="true"><span class="octicon octicon-link"></span></a>API keys</h3>
 
-<p>You should get API KEYs before an using this program, them values have to wroten to a file <strong>$HOME/.ytapigo.json</strong> (see the example <code>ytapigo_example.json</code>):</p>
+<p>You should get API KEYs before an using this program, them values have to be written to a file <strong>$HOME/.ytapigo.json</strong> (see the example <code>ytapigo_example.json</code>). <strong>APIlangs</strong> is a set of <a href="https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/">available translate directions</a>, each one can have a list of possible user's aliases.</p>
 
 <div class="highlight highlight-javascript"><pre>{
   <span class="pl-s1"><span class="pl-pds">"</span>APItr<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
-  <span class="pl-s1"><span class="pl-pds">"</span>APIdict<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>
+  <span class="pl-s1"><span class="pl-pds">"</span>APIdict<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
+  <span class="pl-s1"><span class="pl-pds">"</span>Aliases<span class="pl-pds">"</span></span><span class="pl-k">:</span> {                      <span class="pl-c">// User's languages aliases</span>
+    <span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s1"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>англ<span class="pl-pds">"</span></span>],
+    <span class="pl-s1"><span class="pl-pds">"</span>ru-en<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s1"><span class="pl-pds">"</span>ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>ру<span class="pl-pds">"</span></span>],
+  },
+  <span class="pl-s1"><span class="pl-pds">"</span>Default<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>                <span class="pl-c">// default translation direction</span>
 }</pre></div>
 
 <ol>
 <li>
-<strong>APItr</strong> - API KEY for <a href="http://api.yandex.ru/key/form.xml?service=trnsl">Yandex Translate</a>
+<strong>APItr</strong> - API KEY for <a href="https://tech.yandex.ru/keys/get/?service=trnsl">Yandex Translate</a>
 </li>
 <li>
-<strong>APIdict</strong> - API KEY for <a href="http://api.yandex.ru/key/form.xml?service=dict">Yandex Dictionary</a>
+<strong>APIdict</strong> - API KEY for <a href="https://tech.yandex.ru/keys/get/?service=dict">Yandex Dictionary</a>
 </li>
 </ol>
 
 <p>It was implemented using the services:</p>
 
 <ul>
-<li><a href="http://api.yandex.ru/dictionary/">Yandex Dictionary</a></li>
-<li><a href="http://api.yandex.ru/translate/">Yandex Translate</a></li>
+<li><a href="http://api.yandex.com/dictionary/">Yandex Dictionary</a></li>
+<li><a href="http://api.yandex.com/translate/">Yandex Translate</a></li>
 <li><a href="http://api.yandex.ru/speller/">Yandex Speller</a></li>
 </ul>
       </section>
