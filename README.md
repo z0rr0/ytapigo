@@ -1,7 +1,7 @@
 YtapiGo
 =======
 
-It is a program to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.ru/translate/). By default UTF-8 encoding are used.
+It is a program to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.ru/translate/). By default UTF-8 encoding is used.
 
 It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main.go.example).
 
@@ -70,7 +70,7 @@ chmod u+x main
 
 ### API keys
 
-You should get API KEYs before an using this program, them values have to be written to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one can have a list of possible user's aliases.
+Users should get API KEYs before an using this program, these values have to be written to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one can have a list of possible user's aliases.
 
 ```javascript
 {
