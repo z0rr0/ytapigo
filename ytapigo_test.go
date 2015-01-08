@@ -1,7 +1,7 @@
 package ytapigo
 
 import (
-    // "fmt"
+    "fmt"
     "testing"
 )
 
@@ -20,6 +20,45 @@ func ExampleStringBinarySearch() {
     }
     // Output:
     // Found: strs[2]=aac
+}
+
+func TestReadConfig(t *testing.T) {
+    _, err := ReadConfig()
+    if err != nil {
+        t.Errorf("Config file error")
+    }
+}
+
+func TestStringBinarySearch(t *testing.T) {
+    var strs = []string{"aaa", "aab", "aac", "aad"}
+    if i := StringBinarySearch(strs, "aac", 0, len(strs)-1); i != 2 {
+        t.Errorf("Incorrect BinarySearch result")
+    }
+    if i := StringBinarySearch(strs, "aae", 0, len(strs)-1); i != -1 {
+        t.Errorf("Incorrect BinarySearch result")
+    }
+}
+
+func TestGetSourceLang(t *testing.T) {
+    cfg, err := ReadConfig()
+    if err != nil {
+        t.Errorf("Config file error")
+    }
+    LoggerInit(&cfg)
+    sources1 := map[string]string{"en-ru": "en", "ru-hu": "ru", "hu-zh": "hu"}
+    for k, v := range sources1 {
+        source, err := GetSourceLang(&cfg, k)
+        if (err != nil) || (source != v) {
+            t.Errorf("Wrong GetSourceLang")
+        }
+    }
+    sources2 := [2]string{"", "-hu"}
+    for _, v := range sources2 {
+        _, err := GetSourceLang(&cfg, v)
+        if err == nil {
+            t.Errorf("Wrong GetSourceLang (bad attempts)")
+        }
+    }
 }
 
 func TestGetTr(t *testing.T) {
