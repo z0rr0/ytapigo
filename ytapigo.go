@@ -586,10 +586,10 @@ func GetTr(params []string) (string, string, error) {
             return "", "", fmt.Errorf("Cannot verify translation direction. Please check a language direction prefix or the config file: %v/%v.json", ConfDir, ConfName)
         }
         if alias {
-            if (len(strings.SplitN(params[1], " ", 2)) == 1) && (!ddir_ok) {
+            txt = strings.Join(params[1:], " ")
+            if (len(strings.SplitN(txt, " ", 2)) == 1) && (!ddir_ok) {
                 return "", "", fmt.Errorf("Cannot verify dictionary direction. Please check a language direction prefix or the config file: %v/%v.json", ConfDir, ConfName)
             }
-            txt = strings.Join(params[1:], " ")
         } else {
             txt = strings.Join(params, " ")
         }
