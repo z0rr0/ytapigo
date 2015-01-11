@@ -78,7 +78,7 @@ Users should get API KEYs before an using this program, these values have to be 
   "APIdict": "some key value",
   "Aliases": {                      // User's languages aliases
     "en-ru": ["en", "англ"],
-    "ru-en": ["ru", "ру"],
+    "ru-en": ["ru", "ру"]
   },
   "Default": "en-ru"                // default translation direction
 }

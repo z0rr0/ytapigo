@@ -1,7 +1,6 @@
 {
   "APItr": "key value",
   "APIdict": "key value",
-
   "APIlangs": {
     "en-ru": ["англ", "en"],
     "ru-en": ["ru", "ру"],
@@ -10,6 +9,5 @@
     "sl-en": ["sl-en"]
   },
   "Default": "en-ru",
-
   "Debug": true
 }
