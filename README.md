@@ -3,7 +3,7 @@ YtapiGo
 
 It is a program to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.com/translate/). By default UTF-8 encoding is used.
 
-It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main.go.example).
+It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main.go.example), the [documentation](http://godoc.org/github.com/z0rr0/ytapigo) contains details about all methods and variables.
 
 A spell check is supported only for English, Russian and Ukrainian languages.
 
