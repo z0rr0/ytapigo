@@ -1,36 +1,36 @@
 package main
 
 import (
-    "fmt"
-    "github.com/z0rr0/ytapigo"
     "os"
+    "fmt"
     "flag"
+    "github.com/z0rr0/ytapigo"
 )
 
 func main() {
     defer func() {
         if r := recover(); r != nil {
-            fmt.Println(r)
+            fmt.Printf("Panic: %v\n", r)
+            os.Exit(1)
         }
     }()
-    langs_msg := flag.Bool("langs", false, "show available languages")
-    help_msg := flag.Bool("help", false, "help message")
+    langs := flag.Bool("langs", false, "show available languages")
+    debug := flag.Bool("debug", false, "debug mode")
     flag.Parse()
 
-    if *help_msg {
-        fmt.Println(ytapigo.ShowHelp(os.Args[0]))
-    } else {
-        if *langs_msg {
-            langs, err := ytapigo.GetLangs()
-            if err != nil {
-                panic(err)
-            }
-            fmt.Println(langs)
+    if *debug {
+        ytapigo.DebugMode(true)
+    }
+    if *langs {
+        if langs, err := ytapigo.GetLangs(); err != nil {
+            panic(err)
         } else {
-            spelling, translation, err := ytapigo.GetTr(flag.Args())
-            if err != nil {
-                panic(err)
-            }
+            fmt.Println(langs)
+        }
+    } else {
+        if spelling, translation, err := ytapigo.GetTranslations(flag.Args()); err != nil {
+            panic(err)
+        } else {
             fmt.Printf("%v\n%v\n", spelling, translation)
         }
     }

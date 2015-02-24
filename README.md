@@ -9,6 +9,11 @@ A spell check is supported only for English, Russian and Ukrainian languages.
 
 ### Usage
 
+See example in [main.go.example](https://github.com/z0rr0/ytapigo/main.go.example).
+
+[![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo)
+
+
 ```go
 package main
 
@@ -24,22 +29,22 @@ func main() {
     )
 
     // Example #1: en-ru direction (default)
-    spelling, translation, err = ytapigo.GetTr("Hi All!")
+    spelling, translation, err = ytapigo.GetTranslations("Hi All!")
     if err != nil {
         panic(err)
     }
     // Example #2: en-ru direction
-    spelling, translation, err = ytapigo.GetTr("en-ru", "Hi All!")
+    spelling, translation, err = ytapigo.GetTranslations("en-ru", "Hi All!")
     if err != nil {
         panic(err)
     }
     // Example #3: translation article for a word
-    spelling, translation, err = ytapigo.GetTr("en-ru", "car")
+    spelling, translation, err = ytapigo.GetTranslations("en-ru", "car")
     if err != nil {
         panic(err)
     }
     // Example #4: read command line parameters
-    spelling, translation, err = ytapigo.GetTr(os.Args[1:])
+    spelling, translation, err = ytapigo.GetTranslations(os.Args[1:])
     if err != nil {
         panic(err)
     }
@@ -50,10 +55,10 @@ func main() {
 
 Download binary file:
 
-* Linux - [amd64](https://yadi.sk/d/DkVXPeuIdpu8Z), [386](https://yadi.sk/d/VbPP1mgndpu7v), [ARM (RaspberryPI)](https://yadi.sk/d/raQBuVvmdpu9U)
-* FreeBSD - [amd64](https://yadi.sk/d/1Rfh1rd5dpu5z), [386](https://yadi.sk/d/UbezQACmdpu4w), [ARM (RaspberryPI)](https://yadi.sk/d/3o-5wUVhdpu6q)
-* Darwin (MacOS) - [amd64](https://yadi.sk/d/_dyoBofEdpu3x), [386](https://yadi.sk/d/5zNaMAwBdpu2R)
-* Windows - [amd64](https://yadi.sk/d/lBBFPIBcdpuF8), [386](https://yadi.sk/d/HehMeTSvdpuCh)
+* Linux - [amd64](https://e.t34.me/open/YtapiGo/linux_amd64/main), [386](https://e.t34.me/open/YtapiGo/linux_386/main), [ARM (RaspberryPI)](https://e.t34.me/open/YtapiGo/linux_arm/main)
+* FreeBSD - [amd64](https://e.t34.me/open/YtapiGo/freebsd_amd64/main), [386](https://e.t34.me/open/YtapiGo/freebsd_386/main), [ARM (RaspberryPI)](https://e.t34.me/open/YtapiGo/freebsd_arm/main)
+* Darwin (MacOS) - [amd64](https://e.t34.me/open/YtapiGo/darwin_amd64/main), [386](https://e.t34.me/open/YtapiGo/darwin_386/main)
+* Windows - [amd64](https://e.t34.me/open/YtapiGo/windows_amd64/main.exe), [386](https://e.t34.me/open/YtapiGo/windows_386/main.exe)
 
 Usage:
 
@@ -65,8 +70,7 @@ chmod u+x main
 
 ### Dependencies
 
-* [Go](http://golang.org/) is an open source programming language that makes it easy to build simple, reliable, and efficient software.
-* [Viper](https://github.com/spf13/viper) is a complete configuration solution for go applications.
+Standard [Go library](http://golang.org/pkg/).
 
 ### API keys
 
