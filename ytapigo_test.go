@@ -96,15 +96,15 @@ func TestGetLangs(t *testing.T) {
             t.Errorf("empty langs")
         }
     }
-    jsr1 := &JsonSpelResp{}
+    jsr1 := &JSONSpelResp{}
     if jsr1.Exists() == true {
         t.Errorf("incorrect result")
     }
-    jsr2 := &JsonTrResp{}
+    jsr2 := &JSONTrResp{}
     if jsr2.Exists() == true {
         t.Errorf("incorrect result")
     }
-    jsr3 := &JsonTrDict{}
+    jsr3 := &JSONTrDict{}
     if jsr3.Exists() == true {
         t.Errorf("incorrect result")
     }
@@ -113,17 +113,16 @@ func TestGetLangs(t *testing.T) {
 func TestGetTranslations(t *testing.T) {
     DebugMode(true)
     var (
-        examples_en = map[string][]string{"the lion": {"", "Лев"}, "the car": {"", "автомобиль"}}
-        examples_ru = map[string][]string{"красная машина": {"", "red car"}, "большой дом": {"", "big house"}}
-        example_dict = map[string]string{"car": "автомобиль", "house": "дом", "lion": "лев"}
-        example_spell = map[string]string{"carr": "[car]", "housee": "[house]", "lionn": "[lion]"}
-        example_aliases = map[string]bool{"enru": true, "er": false}
-        // example_wrong = map[string]bool{"": false}
+        examplesEn = map[string][]string{"the lion": {"", "Лев"}, "the car": {"", "автомобиль"}}
+        examplesRu = map[string][]string{"красная машина": {"", "red car"}, "большой дом": {"", "big house"}}
+        exampleDict = map[string]string{"car": "автомобиль", "house": "дом", "lion": "лев"}
+        exampleSpell = map[string]string{"carr": "[car]", "housee": "[house]", "lionn": "[lion]"}
+        exampleAliases = map[string]bool{"enru": true, "er": false}
         params []string
     )
 
     params = make([]string, 1)
-    for key, val := range examples_en {
+    for key, val := range examplesEn {
         params[0] = key
         if spelling, translation, err := GetTranslations(params); err != nil {
             t.Errorf("failed GetTranslations test: %v", err)
@@ -135,7 +134,7 @@ func TestGetTranslations(t *testing.T) {
     }
     params = make([]string, 2)
     params[0] = "ru-en"
-    for key, val := range examples_ru {
+    for key, val := range examplesRu {
         params[1] = key
         if spelling, translation, err := GetTranslations(params); err != nil {
             t.Errorf("failed GetTranslations (ru) test: %v", err)
@@ -146,7 +145,7 @@ func TestGetTranslations(t *testing.T) {
         }
     }
     params[0] = "en-ru"
-    for key, val := range example_dict {
+    for key, val := range exampleDict {
         params[1] = key
         if _, translation, err := GetTranslations(params); err != nil {
             t.Errorf("failed GetTranslations (dict) test: %v", err)
@@ -156,7 +155,7 @@ func TestGetTranslations(t *testing.T) {
             }
         }
     }
-    for key, val := range example_spell {
+    for key, val := range exampleSpell {
         params[1] = key
         if spelling, translation, err := GetTranslations(params); err != nil {
             t.Errorf("failed GetTranslations (dict) test: %v", err)
@@ -166,7 +165,7 @@ func TestGetTranslations(t *testing.T) {
             }
         }
     }
-    for key, val := range example_aliases {
+    for key, val := range exampleAliases {
         params[0], params[1] = key, "hi"
         if spelling, _, err := GetTranslations(params); err != nil {
             t.Errorf("failed GetTranslations (dict) test: %v", err)
@@ -178,61 +177,3 @@ func TestGetTranslations(t *testing.T) {
     }
 
 }
-
-// test request
-// http://speller.yandex.net/services/spellservice.json/checkText?format=plain&lang=ru&options=518&text=приветт
-
-// func TestGetSourceLang(t *testing.T) {
-//     cfg, err := ReadConfig()
-//     if err != nil {
-//         t.Errorf("Config file error")
-//     }
-//     LoggerInit(&cfg)
-//     sources1 := map[string]string{"en-ru": "en", "ru-hu": "ru", "hu-zh": "hu"}
-//     for k, v := range sources1 {
-//         source, err := GetSourceLang(&cfg, k)
-//         if (err != nil) || (source != v) {
-//             t.Errorf("Wrong GetSourceLang")
-//         }
-//     }
-//     sources2 := [2]string{"", "-hu"}
-//     for _, v := range sources2 {
-//         _, err := GetSourceLang(&cfg, v)
-//         if err == nil {
-//             t.Errorf("Wrong GetSourceLang (bad attempts)")
-//         }
-//     }
-// }
-
-// func TestGetTr(t *testing.T) {
-//     var (
-//         examples_en = map[string][]string{"the lion": {"", "Лев"}, "the car": {"", "автомобиль"}}
-//         examples_ru = map[string][]string{"красная машина": {"", "red car"}, "большой дом": {"", "big house"}}
-//         params []string
-//     )
-
-//     params = make([]string, 1)
-//     for key, val := range examples_en {
-//         params[0] = key
-//         spelling, translation, err := GetTr(params)
-//         if err != nil {
-//             t.Errorf("Failed GetTr test:%v", err)
-//         }
-//         if (val[0] != spelling) || (val[1] != translation) {
-//             t.Errorf("Failed GetTr test")
-//         }
-//     }
-
-//     params = make([]string, 2)
-//     params[0] = "ru"
-//     for key, val := range examples_ru {
-//         params[1] = key
-//         spelling, translation, err := GetTr(params)
-//         if err != nil {
-//             t.Errorf("Failed GetTr test:%v", err)
-//         }
-//         if (val[0] != spelling) || (val[1] != translation) {
-//             t.Errorf("Failed GetTr test")
-//         }
-//     }
-// }

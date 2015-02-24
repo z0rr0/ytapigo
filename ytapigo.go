@@ -24,13 +24,14 @@ import (
 )
 
 const (
+    // ConfName is a name of configuration file
     ConfName string = ".ytapigo.json"
 )
 var (
-    // YtJsonURLs is an array of API URLs:
+    // YtJSONURLs is an array of API URLs:
     // 0-Spelling, 1-Translation, 2-Dictionary,
     // 3-Translation directions, 4-Dictionary directions
-    YtJsonURLs = [5]string{
+    YtJSONURLs = [5]string{
         "http://speller.yandex.net/services/spellservice.json/checkText?",
         "https://translate.yandex.net/api/v1.5/tr.json/translate?",
         "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?",
@@ -38,13 +39,14 @@ var (
         "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs?",
     }
     // LdPattern is a regexp pattern to detect language direction.
-    LdPattern *regexp.Regexp = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
+    LdPattern = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
     // LoggerError implements error logger.
     LoggerError = log.New(os.Stderr, "YtapiGo ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
     // LoggerDebug implements debug logger, it's disabled by default.
     LoggerDebug = log.New(ioutil.Discard, "YtapiGo DEBUG: ", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 )
 
+// YtapiGo is a main structure
 type YtapiGo struct {
     Cfg Config
     Debug bool
@@ -72,8 +74,8 @@ type Config struct {
 }
 
 // String shows info that was read from the configuration file.
-func (yt *YtapiGo) String() string {
-    return fmt.Sprintf("\nConfig:\n APItr=%v\n APIdict=%v\n Default=%v\n Aliases=%v\n Debug=%v", yt.Cfg.APItr, yt.Cfg.APIdict, yt.Cfg.Default, yt.Cfg.Aliases, yt.Debug)
+func (ytg *YtapiGo) String() string {
+    return fmt.Sprintf("\nConfig:\n APItr=%v\n APIdict=%v\n Default=%v\n Aliases=%v\n Debug=%v", ytg.Cfg.APItr, ytg.Cfg.APIdict, ytg.Cfg.Default, ytg.Cfg.Aliases, ytg.Debug)
 }
 
 // LangsList is a  list of dictionary's languages (from JSON response).
@@ -87,9 +89,9 @@ type LangsListTr struct {
     Langs map[string]string `json:"langs"`
 }
 
-// JsonSpelResp is a type of a spell check (from JSON response).
+// JSONSpelResp is a type of a spell check (from JSON response).
 // It supports "Translater" interface.
-type JsonSpelResp struct {
+type JSONSpelResp struct {
     Word string   `json:"word"`
     S []string    `json:"s"`
     Code float64  `json:"code"`
@@ -99,47 +101,47 @@ type JsonSpelResp struct {
     Len float64   `json:"len"`
 }
 
-// JsonTrResp is a type of a translation (from JSON response).
+// JSONTrResp is a type of a translation (from JSON response).
 // It supports "Translater" interface.
-type JsonTrResp struct {
+type JSONTrResp struct {
     Code float64  `json:"code"`
     Lang string   `json:"lang"`
     Text []string `json:"text"`
 }
 
-// JsonTrDictExample is an internal type of JsonTrDict.
-type JsonTrDictExample struct {
+// JSONTrDictExample is an internal type of JSONTrDict.
+type JSONTrDictExample struct {
     Pos string
     Text string
     Tr []map[string]string
 }
 
-// JsonTrDictItem is an internal type of JsonTrDict.
-type JsonTrDictItem struct {
+// JSONTrDictItem is an internal type of JSONTrDict.
+type JSONTrDictItem struct {
     Text string
     Pos string
     Syn []map[string]string
     Mean []map[string]string
-    Ex []JsonTrDictExample
+    Ex []JSONTrDictExample
 }
-// JsonTrDictArticle is an internal type of JsonTrDict.
-type JsonTrDictArticle struct {
+// JSONTrDictArticle is an internal type of JSONTrDict.
+type JSONTrDictArticle struct {
     Pos string
     Text string
     Ts string
     Gen string
-    Tr []JsonTrDictItem
+    Tr []JSONTrDictItem
 }
 
-// JsonTrDict is a type of a translation dictionary (from JSON response).
+// JSONTrDict is a type of a translation dictionary (from JSON response).
 // It supports "Translater" interface.
-type JsonTrDict struct {
+type JSONTrDict struct {
     Head map[string]string   `json:"head"`
-    Def []JsonTrDictArticle  `json:"def"`
+    Def []JSONTrDictArticle  `json:"def"`
 }
 
-// JsonSpelResps is an array of spelling results.
-type JsonSpelResps []JsonSpelResp
+// JSONSpelResps is an array of spelling results.
+type JSONSpelResps []JSONSpelResp
 
 // String is an implementation of String() method for LangsList pointer (LangChecker interface).
 func (lch *LangsList) String() string {
@@ -166,8 +168,8 @@ func (lch *LangsList) Description() string {
 
 // String is an implementation of String() method for LangsListTr
 // pointer (LangChecker interface).
-func (lch *LangsListTr) String() string {
-    return fmt.Sprintf("%v", strings.Join(lch.Dirs, ", "))
+func (ltr *LangsListTr) String() string {
+    return fmt.Sprintf("%v", strings.Join(ltr.Dirs, ", "))
 }
 
 // The implementation of Contains() method for LangsListTr
@@ -191,14 +193,14 @@ func (ltr *LangsListTr) Description() string {
         collen, counter int
     )
     counter = len(ltr.Langs)
-    i, desc_str := 0, make([]string, counter)
+    i, descstr := 0, make([]string, counter)
     for k, v := range ltr.Langs {
         if len(v) > 0 {
-            desc_str[i] = fmt.Sprintf("%v - %v", k, v)
+            descstr[i] = fmt.Sprintf("%v - %v", k, v)
             i++
         }
     }
-    sort.Strings(desc_str)
+    sort.Strings(descstr)
 
     if (counter % n) != 0 {
         collen = counter / n + 1
@@ -209,40 +211,40 @@ func (ltr *LangsListTr) Description() string {
     for j := 0; j < collen; j++ {
         switch {
             case j+2*collen < counter:
-                output[j] = fmt.Sprintf("%-25v %-25v %-25v", desc_str[j], desc_str[j+collen], desc_str[j+2*collen])
+                output[j] = fmt.Sprintf("%-25v %-25v %-25v", descstr[j], descstr[j+collen], descstr[j+2*collen])
             case j+collen < counter:
-                output[j] = fmt.Sprintf("%-25v %-25v", desc_str[j], desc_str[j+collen])
+                output[j] = fmt.Sprintf("%-25v %-25v", descstr[j], descstr[j+collen])
             default:
-                output[j] = fmt.Sprintf("%-25v", desc_str[j])
+                output[j] = fmt.Sprintf("%-25v", descstr[j])
         }
     }
     return strings.Join(output, "\n")
 }
 
-// Exists is an implementation of Exists() method for JsonSpelResp pointer
+// Exists is an implementation of Exists() method for JSONSpelResp pointer
 // (Translater interface).
-func (jspell *JsonSpelResp) Exists() bool {
+func (jspell *JSONSpelResp) Exists() bool {
     if (len(jspell.Word) > 0) || (len(jspell.S) > 0) {
         return true
     }
     return false
 }
 
-// String is an implementation of String() method for JsonSpelResp pointer.
-func (jspell *JsonSpelResp) String() string {
+// String is an implementation of String() method for JSONSpelResp pointer.
+func (jspell *JSONSpelResp) String() string {
     return fmt.Sprintf("%v -> %v", jspell.Word, jspell.S)
 }
 
-// Exists is an implementation of Exists() method for JsonSpelResps pointer.
-func (jspells *JsonSpelResps) Exists() bool {
+// Exists is an implementation of Exists() method for JSONSpelResps pointer.
+func (jspells *JSONSpelResps) Exists() bool {
     if len(*jspells) > 0 {
         return true
     }
     return false
 }
 
-// String is an implementation of String() method for JsonSpelResps pointer.
-func (jspells *JsonSpelResps) String() string {
+// String is an implementation of String() method for JSONSpelResps pointer.
+func (jspells *JSONSpelResps) String() string {
     spellstr := make([]string, len(*jspells))
     for i, v := range *jspells {
         if v.Exists() {
@@ -252,36 +254,36 @@ func (jspells *JsonSpelResps) String() string {
     return fmt.Sprintf("Spelling: \n\t%v", strings.Join(spellstr, "\n\t"))
 }
 
-// String is an implementation of String() method for JsonTrResp pointer.
-func (jstr *JsonTrResp) String() string {
+// String is an implementation of String() method for JSONTrResp pointer.
+func (jstr *JSONTrResp) String() string {
     if len(jstr.Text) == 0 {
         return ""
     }
     return jstr.Text[0]
 }
 
-// Exists is an implementation of Exists() method for JsonTrResp pointer.
-func (jstr *JsonTrResp) Exists() bool {
+// Exists is an implementation of Exists() method for JSONTrResp pointer.
+func (jstr *JSONTrResp) Exists() bool {
     if jstr.String() != "" {
         return true
     }
     return false
 }
 
-// Exists is an implementation of Exists() method for JsonTrDict pointer.
-func (jstr *JsonTrDict) Exists() bool {
+// Exists is an implementation of Exists() method for JSONTrDict pointer.
+func (jstr *JSONTrDict) Exists() bool {
     if jstr.String() != "" {
         return true
     }
     return false
 }
 
-// String is an implementation of String() method for JsonTrDict pointer.
+// String is an implementation of String() method for JSONTrDict pointer.
 // It returns a pretty formatted string.
-func (jstr *JsonTrDict) String() string {
+func (jstr *JSONTrDict) String() string {
     var (
-        result, ar_result, syn, mean, ex, extr []string
-        txt_result, txt_syn, txt_mean, txt_ex string
+        result, arResult, syn, mean, ex, extr []string
+        txtResult, txtSyn, txtMean, txtEx string
     )
     result = make([]string, len(jstr.Def))
     for i, def := range jstr.Def {
@@ -289,11 +291,11 @@ func (jstr *JsonTrDict) String() string {
         if def.Ts != "" {
             ts = fmt.Sprintf(" [%v] ", def.Ts)
         }
-        txt_result = fmt.Sprintf("%v%v(%v)", def.Text, ts, def.Pos)
-        ar_result = make([]string, len(def.Tr))
+        txtResult = fmt.Sprintf("%v%v(%v)", def.Text, ts, def.Pos)
+        arResult = make([]string, len(def.Tr))
         for j, tr := range def.Tr {
             syn, mean, ex = make([]string, len(tr.Syn)), make([]string, len(tr.Mean)), make([]string, len(tr.Ex))
-            txt_syn, txt_mean, txt_ex = "", "", ""
+            txtSyn, txtMean, txtEx = "", "", ""
             for k, v := range tr.Syn {
                 syn[k] = fmt.Sprintf("%v (%v)", v["text"], v["pos"])
             }
@@ -308,18 +310,18 @@ func (jstr *JsonTrDict) String() string {
                 ex[k] = fmt.Sprintf("%v: %v", v.Text, strings.Join(extr, ", "))
             }
             if len(syn) > 0 {
-                txt_syn = fmt.Sprintf("\n\tsyn: %v", strings.Join(syn, ", "))
+                txtSyn = fmt.Sprintf("\n\tsyn: %v", strings.Join(syn, ", "))
             }
             if len(mean) > 0 {
-                txt_mean = fmt.Sprintf("\n\tmean: %v", strings.Join(mean, ", "))
+                txtMean = fmt.Sprintf("\n\tmean: %v", strings.Join(mean, ", "))
             }
             if len(ex) > 0 {
-                txt_ex = fmt.Sprintf("\n\texamples: \n\t\t%v", strings.Join(ex, "\n\t\t"))
+                txtEx = fmt.Sprintf("\n\texamples: \n\t\t%v", strings.Join(ex, "\n\t\t"))
             }
 
-            ar_result[j] = fmt.Sprintf("\t%v (%v)%v%v%v", tr.Text, tr.Pos, txt_syn, txt_mean, txt_ex)
+            arResult[j] = fmt.Sprintf("\t%v (%v)%v%v%v", tr.Text, tr.Pos, txtSyn, txtMean, txtEx)
         }
-        result[i] = fmt.Sprintf("%v\n%v", txt_result, strings.Join(ar_result, "\n"))
+        result[i] = fmt.Sprintf("%v\n%v", txtResult, strings.Join(arResult, "\n"))
     }
     return strings.Join(result, "\n")
 }
@@ -354,15 +356,15 @@ func (ytg *YtapiGo) Read() error {
 }
 
 // Spelling checks a spelling of income text message.
-// It returns JsonSpelResps as Translater interface.
+// It returns JSONSpelResps as Translater interface.
 func (ytg *YtapiGo) Spelling(lang, txt string) (Translater, error) {
-    result := &JsonSpelResps{}
+    result := &JSONSpelResps{}
     params := url.Values{
         "lang": {lang},
         "text": {txt},
         "format": {"plain"},
         "options": {"518"}}
-    body, err := Request(YtJsonURLs[0], &params)
+    body, err := Request(YtJSONURLs[0], &params)
     if err != nil {
         return result, err
     }
@@ -382,16 +384,16 @@ func (ytg *YtapiGo) Translation(lang, txt string, tr bool) (Translater, error) {
         trurl string
         params url.Values
     )
-    if word_counter := len(strings.Split(txt, " ")); tr || (word_counter > 1) {
-        result = &JsonTrResp{}
-        trurl, params = YtJsonURLs[1], url.Values{
+    if wordCounter := len(strings.Split(txt, " ")); tr || (wordCounter > 1) {
+        result = &JSONTrResp{}
+        trurl, params = YtJSONURLs[1], url.Values{
             "lang": {lang},
             "text": {txt},
             "key": {ytconf.APItr},
             "format": {"plain"}}
     } else {
-        result = &JsonTrDict{}
-        trurl, params = YtJsonURLs[2], url.Values{
+        result = &JSONTrDict{}
+        trurl, params = YtJSONURLs[2], url.Values{
             "lang": {lang},
             "text": {txt},
             "key": {ytconf.APIdict}}
@@ -417,11 +419,11 @@ func (ytg *YtapiGo) GetLangsList(dict bool, c chan LangChecker) {
     )
     if dict {
         result = &LangsList{}
-        urlstr = YtJsonURLs[4]
-        urlstr, params = YtJsonURLs[4], url.Values{"key": {ytconf.APIdict}}
+        urlstr = YtJSONURLs[4]
+        urlstr, params = YtJSONURLs[4], url.Values{"key": {ytconf.APIdict}}
     } else {
         result = &LangsListTr{}
-        urlstr, params = YtJsonURLs[3], url.Values{"key": {ytconf.APItr}, "ui": {"en"}}
+        urlstr, params = YtJSONURLs[3], url.Values{"key": {ytconf.APItr}, "ui": {"en"}}
     }
     body, err := Request(urlstr, &params)
     if err != nil {
@@ -443,11 +445,11 @@ func (ytg *YtapiGo) Direction(direction string) (bool, bool) {
     if len(direction) == 0 {
         return false, false
     }
-    langs_dic, langs_tr := make(chan LangChecker), make(chan LangChecker)
-    go ytg.GetLangsList(true, langs_dic)
-    go ytg.GetLangsList(false, langs_tr)
-    lch_dic, lch_tr := <-langs_dic, <-langs_tr
-    return lch_dic.Contains(direction), lch_tr.Contains(direction)
+    langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
+    go ytg.GetLangsList(true, langsDic)
+    go ytg.GetLangsList(false, langsTr)
+    lchDic, lchTr := <-langsDic, <-langsTr
+    return lchDic.Contains(direction), lchTr.Contains(direction)
 }
 
 // AliasDirection verifies translation direction,
@@ -465,21 +467,21 @@ func (ytg *YtapiGo) AliasDirection(direction string, langs *string, isalias *boo
             break
         }
     }
-    langs_dic, langs_tr := make(chan LangChecker), make(chan LangChecker)
-    go ytg.GetLangsList(true, langs_dic)
-    go ytg.GetLangsList(false, langs_tr)
-    lch_dic, lch_tr := <-langs_dic, <-langs_tr
+    langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
+    go ytg.GetLangsList(true, langsDic)
+    go ytg.GetLangsList(false, langsTr)
+    lchDic, lchTr := <-langsDic, <-langsTr
 
     if LdPattern.MatchString(alias) {
         LoggerDebug.Printf("maybe it is a direction \"%v\"", alias)
-        lchd_ok, lchtr_ok := lch_dic.Contains(alias), lch_tr.Contains(alias)
-        if lchd_ok || lchtr_ok {
+        lchdOk, lchtrOk := lchDic.Contains(alias), lchTr.Contains(alias)
+        if lchdOk || lchtrOk {
             *langs, *isalias = alias, true
-            return lchd_ok, lchtr_ok
+            return lchdOk, lchtrOk
         }
     }
     LoggerDebug.Printf("not found lang for alias \"%v\", default direction \"%v\" will be used.", alias, cfg.Default)
-    return lch_dic.Contains(cfg.Default), lch_tr.Contains(cfg.Default)
+    return lchDic.Contains(cfg.Default), lchTr.Contains(cfg.Default)
 }
 
 // GetSourceLang returns source language from a string of translation direction.
@@ -493,10 +495,10 @@ func (ytg *YtapiGo) GetSourceLang(direction string) (string, error) {
 
 // Langs returns a list of available languages for current configuration.
 func (ytg *YtapiGo) Langs() (string, error) {
-    langs_dic, langs_tr := make(chan LangChecker), make(chan LangChecker)
-    go ytg.GetLangsList(true, langs_dic)
-    go ytg.GetLangsList(false, langs_tr)
-    lgch, lgct := <-langs_dic, <-langs_tr
+    langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
+    go ytg.GetLangsList(true, langsDic)
+    go ytg.GetLangsList(false, langsTr)
+    lgch, lgct := <-langsDic, <-langsTr
 
     if (lgch.String() == "") && (lgct.String() == "") {
         return "", fmt.Errorf("cannot read languages descriptions")
@@ -508,48 +510,48 @@ func (ytg *YtapiGo) Langs() (string, error) {
 func (ytg *YtapiGo) Translations(params []string) (string, string, error) {
     var (
         wg sync.WaitGroup
-        alias, ddir_ok, tdir_ok bool
+        alias, ddirOk, tdirOk bool
         langs, txt, source string
-        spell_result, tr_result Translater
-        spell_err, tr_err error
+        spellResult, trResult Translater
+        spellErr, trErr error
     )
     switch l := len(params); {
         case l < 1:
             return "", "", fmt.Errorf("too few parameters")
         case l == 1:
             langs = ytg.Cfg.Default
-            ddir_ok, tdir_ok = ytg.Direction(langs)
-            if !ddir_ok {
+            ddirOk, tdirOk = ytg.Direction(langs)
+            if !ddirOk {
                 LoggerDebug.Println("unknown translation direction")
                 return "", "", fmt.Errorf("cannot verify 'Default' translation direction")
             }
             alias, txt = false, params[0]
         default:
-            ddir_ok, tdir_ok = ytg.AliasDirection(params[0], &langs, &alias)
-            if (!ddir_ok) && (!tdir_ok) {
+            ddirOk, tdirOk = ytg.AliasDirection(params[0], &langs, &alias)
+            if (!ddirOk) && (!tdirOk) {
                 LoggerDebug.Println("unknown translation direction")
                 return "", "", fmt.Errorf("cannot verify translation direction")
             }
             if alias {
                 txt = strings.Join(params[1:], " ")
-                if (len(strings.SplitN(txt, " ", 2)) == 1) && (!ddir_ok) {
+                if (len(strings.SplitN(txt, " ", 2)) == 1) && (!ddirOk) {
                     return "", "", fmt.Errorf("cannot verify dictionary direction")
                 }
             } else {
                 txt = strings.Join(params, " ")
             }
     }
-    LoggerDebug.Printf("direction=%v, alias=%v (%v, %v)", langs, alias, ddir_ok, tdir_ok)
-    if source, spell_err = ytg.GetSourceLang(langs); spell_err == nil {
+    LoggerDebug.Printf("direction=%v, alias=%v (%v, %v)", langs, alias, ddirOk, tdirOk)
+    if source, spellErr = ytg.GetSourceLang(langs); spellErr == nil {
         switch source {
             case "ru", "en", "uk":
                 wg.Add(1)
                 go func(i *Translater, e *error, l string, t string) {
                     defer wg.Done()
                     *i, *e = ytg.Spelling(l, t)
-                }(&spell_result, &spell_err, source, txt)
+                }(&spellResult, &spellErr, source, txt)
             default:
-                spell_result = &JsonSpelResps{}
+                spellResult = &JSONSpelResps{}
                 LoggerDebug.Printf("spelling is skipped [%v]\n", source)
         }
     }
@@ -557,18 +559,18 @@ func (ytg *YtapiGo) Translations(params []string) (string, string, error) {
     go func(i *Translater, e *error, l string, t string, tr bool) {
         defer wg.Done()
         *i, *e = ytg.Translation(l, t, tr)
-    }(&tr_result, &tr_err, langs, txt, false)
+    }(&trResult, &trErr, langs, txt, false)
     wg.Wait()
-    if spell_err != nil {
-        return "", "", spell_err
+    if spellErr != nil {
+        return "", "", spellErr
     }
-    if tr_err != nil {
-        return "", "", tr_err
+    if trErr != nil {
+        return "", "", trErr
     }
-    if spell_result.Exists() {
-        return spell_result.String(), tr_result.String(), nil
+    if spellResult.Exists() {
+        return spellResult.String(), trResult.String(), nil
     }
-    return "", tr_result.String(), nil
+    return "", trResult.String(), nil
 }
 
 // GetTranslations is a main YtapiGo function to get translation results.

@@ -9,9 +9,9 @@ A spell check is supported only for English, Russian and Ukrainian languages.
 
 ### Usage
 
-See example in [main.go.example](https://github.com/z0rr0/ytapigo/main.go.example).
+[![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo) [![Build Status](https://travis-ci.org/z0rr0/ytapigo.svg?branch=master)](https://travis-ci.org/z0rr0/ytapigo)
 
-[![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo)
+See example in [main.go.example](https://github.com/z0rr0/ytapigo/main.go.example).
 
 
 ```go
