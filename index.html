@@ -40,6 +40,10 @@
 <h3>
 <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
 
+<p><a href="https://godoc.org/github.com/z0rr0/ytapigo"><img src="https://godoc.org/github.com/z0rr0/ytapigo?status.svg" alt="GoDoc"></a> <a href="https://travis-ci.org/z0rr0/ytapigo"><img src="https://travis-ci.org/z0rr0/ytapigo.svg?branch=master" alt="Build Status"></a></p>
+
+<p>See example in <a href="https://github.com/z0rr0/ytapigo/main.go.example">main.go.example</a>.</p>
+
 <div class="highlight highlight-go"><pre><span class="pl-k">package</span> main
 
 <span class="pl-k">import</span> (
@@ -54,22 +58,22 @@
     )
 
     <span class="pl-c">// Example #1: en-ru direction (default)</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(<span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
     <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
         <span class="pl-s3">panic</span>(err)
     }
     <span class="pl-c">// Example #2: en-ru direction</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
     <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
         <span class="pl-s3">panic</span>(err)
     }
     <span class="pl-c">// Example #3: translation article for a word</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>car<span class="pl-pds">"</span></span>)
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>car<span class="pl-pds">"</span></span>)
     <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
         <span class="pl-s3">panic</span>(err)
     }
     <span class="pl-c">// Example #4: read command line parameters</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTr</span>(os.<span class="pl-vo">Args</span>[<span class="pl-c1">1</span>:])
+    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(os.<span class="pl-vo">Args</span>[<span class="pl-c1">1</span>:])
     <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
         <span class="pl-s3">panic</span>(err)
     }
@@ -80,13 +84,13 @@
 <p>Download binary file:</p>
 
 <ul>
-<li>Linux - <a href="https://yadi.sk/d/DkVXPeuIdpu8Z">amd64</a>, <a href="https://yadi.sk/d/VbPP1mgndpu7v">386</a>, <a href="https://yadi.sk/d/raQBuVvmdpu9U">ARM (RaspberryPI)</a>
+<li>Linux - <a href="https://e.t34.me/open/YtapiGo/linux_amd64/main">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/linux_386/main">386</a>, <a href="https://e.t34.me/open/YtapiGo/linux_arm/main">ARM (RaspberryPI)</a>
 </li>
-<li>FreeBSD - <a href="https://yadi.sk/d/1Rfh1rd5dpu5z">amd64</a>, <a href="https://yadi.sk/d/UbezQACmdpu4w">386</a>, <a href="https://yadi.sk/d/3o-5wUVhdpu6q">ARM (RaspberryPI)</a>
+<li>FreeBSD - <a href="https://e.t34.me/open/YtapiGo/freebsd_amd64/main">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/freebsd_386/main">386</a>, <a href="https://e.t34.me/open/YtapiGo/freebsd_arm/main">ARM (RaspberryPI)</a>
 </li>
-<li>Darwin (MacOS) - <a href="https://yadi.sk/d/_dyoBofEdpu3x">amd64</a>, <a href="https://yadi.sk/d/5zNaMAwBdpu2R">386</a>
+<li>Darwin (MacOS) - <a href="https://e.t34.me/open/YtapiGo/darwin_amd64/main">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/darwin_386/main">386</a>
 </li>
-<li>Windows - <a href="https://yadi.sk/d/lBBFPIBcdpuF8">amd64</a>, <a href="https://yadi.sk/d/HehMeTSvdpuCh">386</a>
+<li>Windows - <a href="https://e.t34.me/open/YtapiGo/windows_amd64/main.exe">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/windows_386/main.exe">386</a>
 </li>
 </ul>
 
@@ -99,12 +103,7 @@
 <h3>
 <a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h3>
 
-<ul>
-<li>
-<a href="http://golang.org/">Go</a> is an open source programming language that makes it easy to build simple, reliable, and efficient software.</li>
-<li>
-<a href="https://github.com/spf13/viper">Viper</a> is a complete configuration solution for go applications.</li>
-</ul>
+<p>Standard <a href="http://golang.org/pkg/">Go library</a>.</p>
 
 <h3>
 <a id="api-keys" class="anchor" href="#api-keys" aria-hidden="true"><span class="octicon octicon-link"></span></a>API keys</h3>
@@ -116,7 +115,7 @@
   <span class="pl-s1"><span class="pl-pds">"</span>APIdict<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
   <span class="pl-s1"><span class="pl-pds">"</span>Aliases<span class="pl-pds">"</span></span><span class="pl-k">:</span> {                      <span class="pl-c">// User's languages aliases</span>
     <span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s1"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>англ<span class="pl-pds">"</span></span>],
-    <span class="pl-s1"><span class="pl-pds">"</span>ru-en<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s1"><span class="pl-pds">"</span>ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>ру<span class="pl-pds">"</span></span>],
+    <span class="pl-s1"><span class="pl-pds">"</span>ru-en<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s1"><span class="pl-pds">"</span>ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>ру<span class="pl-pds">"</span></span>]
   },
   <span class="pl-s1"><span class="pl-pds">"</span>Default<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>                <span class="pl-c">// default translation direction</span>
 }</pre></div>
