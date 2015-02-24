@@ -2,6 +2,7 @@ package ytapigo
 
 import (
     "fmt"
+    "strings"
     "testing"
 )
 
@@ -38,6 +39,144 @@ func TestStringBinarySearch(t *testing.T) {
     if i := StringBinarySearch(strs, "aae", 0, len(strs)-1); i != -1 {
         t.Errorf("Incorrect BinarySearch result")
     }
+}
+
+func TestGetLangs(t *testing.T) {
+    DebugMode(true)
+    // LangsList
+    ll := &LangsList{"en-ru", "ru-en", "fr-en"}
+    if ll.String() != "en-ru, ru-en, fr-en" {
+        t.Errorf("incorrect result")
+    }
+    if len(ll.Description()) == 0 {
+        t.Errorf("incorrect result")
+    }
+    if ll.Contains("ru-en") == false {
+        t.Errorf("incorrect result")
+    }
+    if ll.Contains("jp-en") == true {
+        t.Errorf("incorrect result")
+    }
+    // LangsListTr
+    lltr := &LangsListTr{
+        []string{"en-ru", "ru-en", "fr-en", "de-en"},
+        map[string]string{"en": "English", "ru": "Russina", "fr": "French", "de": "German"},
+    }
+    if lltr.String() != "en-ru, ru-en, fr-en, de-en" {
+        t.Errorf("incorrect result")
+    }
+    if len(lltr.Description()) == 0 {
+        t.Errorf("incorrect result")
+    }
+    lltr = &LangsListTr{
+        []string{"en-ru", "ru-en", "fr-en", "de-en"},
+        map[string]string{"en": "English", "ru": "Russina", "fr": "French"},
+    }
+    if len(lltr.Description()) == 0 {
+        t.Errorf("incorrect result")
+    }
+    if lltr.Contains("ru-en") == false {
+        t.Errorf("incorrect result")
+    }
+    if lltr.Contains("jp-en") == true {
+        t.Errorf("incorrect result")
+    }
+    ytg := New()
+    if len(ytg.String()) == 0 {
+        t.Errorf("failed string YtapiGo")
+    }
+    if err := ytg.Read(); err != nil {
+        t.Errorf("can't read config file")
+    }
+
+    if langs, err := GetLangs(); err != nil {
+        t.Errorf("GetLangs error")
+    } else {
+        if len(langs) == 0 {
+            t.Errorf("empty langs")
+        }
+    }
+    jsr1 := &JsonSpelResp{}
+    if jsr1.Exists() == true {
+        t.Errorf("incorrect result")
+    }
+    jsr2 := &JsonTrResp{}
+    if jsr2.Exists() == true {
+        t.Errorf("incorrect result")
+    }
+    jsr3 := &JsonTrDict{}
+    if jsr3.Exists() == true {
+        t.Errorf("incorrect result")
+    }
+}
+
+func TestGetTranslations(t *testing.T) {
+    DebugMode(true)
+    var (
+        examples_en = map[string][]string{"the lion": {"", "Лев"}, "the car": {"", "автомобиль"}}
+        examples_ru = map[string][]string{"красная машина": {"", "red car"}, "большой дом": {"", "big house"}}
+        example_dict = map[string]string{"car": "автомобиль", "house": "дом", "lion": "лев"}
+        example_spell = map[string]string{"carr": "[car]", "housee": "[house]", "lionn": "[lion]"}
+        example_aliases = map[string]bool{"enru": true, "er": false}
+        // example_wrong = map[string]bool{"": false}
+        params []string
+    )
+
+    params = make([]string, 1)
+    for key, val := range examples_en {
+        params[0] = key
+        if spelling, translation, err := GetTranslations(params); err != nil {
+            t.Errorf("failed GetTranslations test: %v", err)
+        } else {
+            if (val[0] != spelling) || (val[1] != translation) {
+                t.Errorf("failed GetTranslations test result")
+            }
+        }
+    }
+    params = make([]string, 2)
+    params[0] = "ru-en"
+    for key, val := range examples_ru {
+        params[1] = key
+        if spelling, translation, err := GetTranslations(params); err != nil {
+            t.Errorf("failed GetTranslations (ru) test: %v", err)
+        } else {
+            if (val[0] != spelling) || (val[1] != translation) {
+                t.Errorf("failed GetTranslations (ru) test result")
+            }
+        }
+    }
+    params[0] = "en-ru"
+    for key, val := range example_dict {
+        params[1] = key
+        if _, translation, err := GetTranslations(params); err != nil {
+            t.Errorf("failed GetTranslations (dict) test: %v", err)
+        } else {
+            if !strings.Contains(translation, val) {
+                t.Errorf("failed GetTranslations (dict) test result")
+            }
+        }
+    }
+    for key, val := range example_spell {
+        params[1] = key
+        if spelling, translation, err := GetTranslations(params); err != nil {
+            t.Errorf("failed GetTranslations (dict) test: %v", err)
+        } else {
+            if !strings.Contains(spelling, val) || (len(translation) != 0) {
+                t.Errorf("failed GetTranslations (dict) test result")
+            }
+        }
+    }
+    for key, val := range example_aliases {
+        params[0], params[1] = key, "hi"
+        if spelling, _, err := GetTranslations(params); err != nil {
+            t.Errorf("failed GetTranslations (dict) test: %v", err)
+        } else {
+            if val && (len(spelling) != 0 ) {
+                t.Errorf("incorrect alias result")
+            }
+        }
+    }
+
 }
 
 // test request
