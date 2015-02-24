@@ -172,7 +172,7 @@ func (ltr *LangsListTr) String() string {
     return fmt.Sprintf("%v", strings.Join(ltr.Dirs, ", "))
 }
 
-// The implementation of Contains() method for LangsListTr
+// Contains is an implementation of Contains() method for LangsListTr
 // pointer (LangChecker interface).
 func (ltr *LangsListTr) Contains(s string) bool {
     result := false
