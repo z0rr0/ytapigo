@@ -1,13 +1,9 @@
 {
   "APItr": "key value",
   "APIdict": "key value",
-  "APIlangs": {
-    "en-ru": ["англ", "en"],
-    "ru-en": ["ru", "ру"],
-    "en-fr": ["fr", "фр"],
-    "fr-en": ["fre"],
-    "sl-en": ["sl-en"]
+  "Aliases": {
+    "en-ru": ["enru", "en", "англ"],
+    "ru-en": ["ruen", "ru", "ру"]
   },
-  "Default": "en-ru",
-  "Debug": true
+  "Default": "en-ru"
 }

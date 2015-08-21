@@ -1,37 +1,56 @@
 package main
 
 import (
-    "os"
-    "fmt"
     "flag"
+    "fmt"
     "github.com/z0rr0/ytapigo"
+    "os"
+)
+
+const (
+    // Name is a programm name
+    Name = "YtapiGo"
+    // CfgFile is a config file
+    // if not set, then HOME/.ytapigo.json is used
+    CfgFile = ""
+)
+
+var (
+    // Programm version
+    Version string = "v0.0 git:000000 2015-01-01"
 )
 
 func main() {
     defer func() {
         if r := recover(); r != nil {
-            fmt.Printf("Panic: %v\n", r)
+            fmt.Printf("ERROR: %v\n", r)
             os.Exit(1)
         }
     }()
     langs := flag.Bool("langs", false, "show available languages")
     debug := flag.Bool("debug", false, "debug mode")
+    version := flag.Bool("version", false, "print version")
     flag.Parse()
-
-    if *debug {
-        ytapigo.DebugMode(true)
+    if *version {
+        fmt.Printf("%v: %v\n", Name, Version)
+        flag.PrintDefaults()
+        return
+    }
+    ytg, err := ytapigo.New(CfgFile, *debug)
+    if err != nil {
+        panic(err)
     }
     if *langs {
-        if langs, err := ytapigo.GetLangs(); err != nil {
+        if langs, err := ytg.GetLangs(); err != nil {
             panic(err)
         } else {
             fmt.Println(langs)
         }
     } else {
-        if spelling, translation, err := ytapigo.GetTranslations(flag.Args()); err != nil {
+        if s, t, err := ytg.GetTranslations(flag.Args()); err != nil {
             panic(err)
         } else {
-            fmt.Printf("%v\n%v\n", spelling, translation)
+            fmt.Printf("%v\n%v\n", s, t)
         }
     }
 }

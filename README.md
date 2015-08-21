@@ -13,58 +13,13 @@ A spell check is supported only for English, Russian and Ukrainian languages.
 
 See example in [main.go.example](https://github.com/z0rr0/ytapigo/main.go.example).
 
-
-```go
-package main
-
-import (
-    "github.com/z0rr0/ytapigo"
-    "os"
-)
-
-func main() {
-    var (
-        spelling, translation string
-        err error
-    )
-
-    // Example #1: en-ru direction (default)
-    spelling, translation, err = ytapigo.GetTranslations("Hi All!")
-    if err != nil {
-        panic(err)
-    }
-    // Example #2: en-ru direction
-    spelling, translation, err = ytapigo.GetTranslations("en-ru", "Hi All!")
-    if err != nil {
-        panic(err)
-    }
-    // Example #3: translation article for a word
-    spelling, translation, err = ytapigo.GetTranslations("en-ru", "car")
-    if err != nil {
-        panic(err)
-    }
-    // Example #4: read command line parameters
-    spelling, translation, err = ytapigo.GetTranslations(os.Args[1:])
-    if err != nil {
-        panic(err)
-    }
-    fmt.Println(spelling)
-    fmt.Println(translation)
-}
-```
-
-Download binary file:
-
-* Linux - [amd64](https://e.t34.me/open/YtapiGo/linux_amd64/main), [386](https://e.t34.me/open/YtapiGo/linux_386/main), [ARM (RaspberryPI)](https://e.t34.me/open/YtapiGo/linux_arm/main)
-* FreeBSD - [amd64](https://e.t34.me/open/YtapiGo/freebsd_amd64/main), [386](https://e.t34.me/open/YtapiGo/freebsd_386/main), [ARM (RaspberryPI)](https://e.t34.me/open/YtapiGo/freebsd_arm/main)
-* Darwin (MacOS) - [amd64](https://e.t34.me/open/YtapiGo/darwin_amd64/main), [386](https://e.t34.me/open/YtapiGo/darwin_386/main)
-* Windows - [amd64](https://e.t34.me/open/YtapiGo/windows_amd64/main.exe), [386](https://e.t34.me/open/YtapiGo/windows_386/main.exe)
+Download binary file: [Linux-amd64](http://ya.ru)
 
 Usage:
 
 ```shell
-chmod u+x main
-./main en-fr Hello dear fried!
+chmod u+x ytapigo
+./ytapigo en-fr Hello dear fried!
 # output: Bonjour chers frit!
 ```
 
