@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
 
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
 
     <title>Ytapigo by z0rr0</title>
@@ -31,6 +31,8 @@
         <h1>
 <a id="ytapigo" class="anchor" href="#ytapigo" aria-hidden="true"><span class="octicon octicon-link"></span></a>YtapiGo</h1>
 
+<p><a href="https://godoc.org/github.com/z0rr0/ytapigo"><img src="https://godoc.org/github.com/z0rr0/ytapigo?status.svg" alt="GoDoc"></a> <a href="https://travis-ci.org/z0rr0/ytapigo"><img src="https://travis-ci.org/z0rr0/ytapigo.svg?branch=master" alt="Build Status"></a></p>
+
 <p>It is a program to translate and check spelling using the console, it based on <a href="http://api.yandex.com/translate/">Yandex Translate API</a>. By default UTF-8 encoding is used.</p>
 
 <p>It's a clone of the project <a href="http://z0rr0.github.io/ytapi/">Ytapi</a> but on the <a href="http://golang.org/">Go programming language</a>. This is created as a package/library, but it can be used as a separate program (see main.go.example), the <a href="http://godoc.org/github.com/z0rr0/ytapigo">documentation</a> contains details about all methods and variables.</p>
@@ -40,64 +42,14 @@
 <h3>
 <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<p><a href="https://godoc.org/github.com/z0rr0/ytapigo"><img src="https://godoc.org/github.com/z0rr0/ytapigo?status.svg" alt="GoDoc"></a> <a href="https://travis-ci.org/z0rr0/ytapigo"><img src="https://travis-ci.org/z0rr0/ytapigo.svg?branch=master" alt="Build Status"></a></p>
-
 <p>See example in <a href="https://github.com/z0rr0/ytapigo/main.go.example">main.go.example</a>.</p>
 
-<div class="highlight highlight-go"><pre><span class="pl-k">package</span> main
-
-<span class="pl-k">import</span> (
-    <span class="pl-s1"><span class="pl-pds">"</span>github.com/z0rr0/ytapigo<span class="pl-pds">"</span></span>
-    <span class="pl-s1"><span class="pl-pds">"</span>os<span class="pl-pds">"</span></span>
-)
-
-<span class="pl-k">func</span> <span class="pl-en">main</span>() {
-    <span class="pl-s3">var</span> (
-        spelling, translation <span class="pl-st">string</span>
-        err <span class="pl-st">error</span>
-    )
-
-    <span class="pl-c">// Example #1: en-ru direction (default)</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(<span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
-    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
-        <span class="pl-s3">panic</span>(err)
-    }
-    <span class="pl-c">// Example #2: en-ru direction</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Hi All!<span class="pl-pds">"</span></span>)
-    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
-        <span class="pl-s3">panic</span>(err)
-    }
-    <span class="pl-c">// Example #3: translation article for a word</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>car<span class="pl-pds">"</span></span>)
-    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
-        <span class="pl-s3">panic</span>(err)
-    }
-    <span class="pl-c">// Example #4: read command line parameters</span>
-    spelling, translation, err = ytapigo.<span class="pl-s3">GetTranslations</span>(os.<span class="pl-vo">Args</span>[<span class="pl-c1">1</span>:])
-    <span class="pl-k">if</span> err != <span class="pl-c1">nil</span> {
-        <span class="pl-s3">panic</span>(err)
-    }
-    fmt.<span class="pl-s3">Println</span>(spelling)
-    fmt.<span class="pl-s3">Println</span>(translation)
-}</pre></div>
-
-<p>Download binary file:</p>
-
-<ul>
-<li>Linux - <a href="https://e.t34.me/open/YtapiGo/linux_amd64/main">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/linux_386/main">386</a>, <a href="https://e.t34.me/open/YtapiGo/linux_arm/main">ARM (RaspberryPI)</a>
-</li>
-<li>FreeBSD - <a href="https://e.t34.me/open/YtapiGo/freebsd_amd64/main">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/freebsd_386/main">386</a>, <a href="https://e.t34.me/open/YtapiGo/freebsd_arm/main">ARM (RaspberryPI)</a>
-</li>
-<li>Darwin (MacOS) - <a href="https://e.t34.me/open/YtapiGo/darwin_amd64/main">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/darwin_386/main">386</a>
-</li>
-<li>Windows - <a href="https://e.t34.me/open/YtapiGo/windows_amd64/main.exe">amd64</a>, <a href="https://e.t34.me/open/YtapiGo/windows_386/main.exe">386</a>
-</li>
-</ul>
+<p>Download binary file: <a href="https://github.com/z0rr0/ytapigo/releases/download/v0.9/Linux-amd64">Linux-amd64</a></p>
 
 <p>Usage:</p>
 
-<div class="highlight highlight-shell"><pre>chmod u+x main
-./main en-fr Hello dear fried<span class="pl-k">!</span>
+<div class="highlight highlight-shell"><pre>chmod u+x ytapigo
+./ytapigo en-fr Hello dear fried<span class="pl-k">!</span>
 <span class="pl-c"># output: Bonjour chers frit!</span></pre></div>
 
 <h3>
@@ -111,13 +63,13 @@
 <p>Users should get API KEYs before an using this program, these values have to be written to a file <strong>$HOME/.ytapigo.json</strong> (see the example <code>ytapigo_example.json</code>). <strong>APIlangs</strong> is a set of <a href="https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/">available translate directions</a>, each one can have a list of possible user's aliases.</p>
 
 <div class="highlight highlight-javascript"><pre>{
-  <span class="pl-s1"><span class="pl-pds">"</span>APItr<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
-  <span class="pl-s1"><span class="pl-pds">"</span>APIdict<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
-  <span class="pl-s1"><span class="pl-pds">"</span>Aliases<span class="pl-pds">"</span></span><span class="pl-k">:</span> {                      <span class="pl-c">// User's languages aliases</span>
-    <span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s1"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>англ<span class="pl-pds">"</span></span>],
-    <span class="pl-s1"><span class="pl-pds">"</span>ru-en<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s1"><span class="pl-pds">"</span>ru<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>ру<span class="pl-pds">"</span></span>]
+  <span class="pl-s"><span class="pl-pds">"</span>APItr<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>APIdict<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>some key value<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>Aliases<span class="pl-pds">"</span></span><span class="pl-k">:</span> {                      <span class="pl-c">// User's languages aliases</span>
+    <span class="pl-s"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s"><span class="pl-pds">"</span>en<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>англ<span class="pl-pds">"</span></span>],
+    <span class="pl-s"><span class="pl-pds">"</span>ru-en<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-s"><span class="pl-pds">"</span>ru<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>ру<span class="pl-pds">"</span></span>]
   },
-  <span class="pl-s1"><span class="pl-pds">"</span>Default<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>                <span class="pl-c">// default translation direction</span>
+  <span class="pl-s"><span class="pl-pds">"</span>Default<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>en-ru<span class="pl-pds">"</span></span>                <span class="pl-c">// default translation direction</span>
 }</pre></div>
 
 <ol>
