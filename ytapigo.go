@@ -30,10 +30,10 @@ const (
 )
 
 var (
-    // ytJsonUrls is an array of API URLs:
+    // ytJSONUrls is an array of API URLs:
     // 0-Spelling, 1-Translation, 2-Dictionary,
     // 3-Translation directions, 4-Dictionary directions
-    ytJsonUrls = [5]string{
+    ytJSONUrls = [5]string{
         "http://speller.yandex.net/services/spellservice.json/checkText?",
         "https://translate.yandex.net/api/v1.5/tr.json/translate?",
         "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?",
@@ -336,10 +336,10 @@ func (ytg *YtapiGo) getLangsList(dict bool, c chan LangChecker) {
     )
     if dict {
         result = &LangsList{}
-        urlstr, params = ytJsonUrls[4], url.Values{"key": {ytg.Cfg.APIdict}}
+        urlstr, params = ytJSONUrls[4], url.Values{"key": {ytg.Cfg.APIdict}}
     } else {
         result = &LangsListTr{}
-        urlstr, params = ytJsonUrls[3], url.Values{"key": {ytg.Cfg.APItr}, "ui": {"en"}}
+        urlstr, params = ytJSONUrls[3], url.Values{"key": {ytg.Cfg.APItr}, "ui": {"en"}}
     }
     body, err := ytg.request(urlstr, &params)
     if err != nil {
@@ -508,7 +508,7 @@ func (ytg *YtapiGo) Spelling(lang, txt string) (Translater, error) {
         "text":    {txt},
         "format":  {"plain"},
         "options": {"518"}}
-    body, err := ytg.request(ytJsonUrls[0], &params)
+    body, err := ytg.request(ytJSONUrls[0], &params)
     if err != nil {
         return result, err
     }
@@ -529,14 +529,14 @@ func (ytg *YtapiGo) Translation(lang, txt string, tr bool) (Translater, error) {
     )
     if wordCounter := len(strings.Split(txt, " ")); tr || (wordCounter > 1) {
         result = &JSONTrResp{}
-        trurl, params = ytJsonUrls[1], url.Values{
+        trurl, params = ytJSONUrls[1], url.Values{
             "lang":   {lang},
             "text":   {txt},
             "key":    {ytg.Cfg.APItr},
             "format": {"plain"}}
     } else {
         result = &JSONTrDict{}
-        trurl, params = ytJsonUrls[2], url.Values{
+        trurl, params = ytJSONUrls[2], url.Values{
             "lang": {lang},
             "text": {txt},
             "key":  {ytg.Cfg.APIdict}}
