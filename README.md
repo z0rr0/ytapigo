@@ -14,7 +14,7 @@ A spell check is supported only for English, Russian and Ukrainian languages.
 
 See example in [main.go.example](https://github.com/z0rr0/ytapigo/main.go.example).
 
-Download binary file: [Linux-amd64](https://github.com/z0rr0/ytapigo/releases/download/v0.9/Linux-amd64)
+The latest versions of binary files are available in [Releases](https://github.com/z0rr0/ytapigo/releases)
 
 Usage:
 
@@ -37,8 +37,8 @@ Users should get API KEYs before an using this program, these values have to be 
   "APItr": "some key value",
   "APIdict": "some key value",
   "Aliases": {                      // User's languages aliases
-    "en-ru": ["en", "англ"],
-    "ru-en": ["ru", "ру"]
+    "en-ru": ["en", "англ", "e"],
+    "ru-en": ["ru", "ру" "r"]
   },
   "Default": "en-ru"                // default translation direction
 }
