@@ -616,3 +616,9 @@ func (ytg *YtapiGo) GetTranslations(params []string) (string, string, error) {
     }
     return "", trResult.String(), nil
 }
+
+// Duration prints a time duration
+func (ytg *YtapiGo) Duration(t time.Time) {
+    diff := time.Now().Sub(t)
+    ytg.logDebug.Printf("duration=%s\n", diff)
+}

@@ -102,10 +102,11 @@ func TestGetLangs(t *testing.T) {
 
 func TestGetTranslations(t *testing.T) {
     var (
-        examplesEn     = map[string][]string{"the lion": {"", "Лев"}, "the car": {"", "автомобиль"}}
-        examplesRu     = map[string][]string{"красная машина": {"", "red car"}, "большой дом": {"", "big house"}}
-        exampleDict    = map[string]string{"car": "автомобиль", "house": "дом", "lion": "лев"}
-        exampleSpell   = map[string]string{"carrr": "[car]", "housee": "[house]", "lionn": "[lion]"}
+        examplesEn   = map[string][]string{"the lion": {"", "Лев"}, "the car": {"", "автомобиль"}}
+        examplesRu   = map[string][]string{"красная машина": {"", "red car"}, "большой дом": {"", "big house"}}
+        exampleDict  = map[string]string{"car": "автомобиль", "house": "дом", "lion": "лев"}
+        exampleSpell = map[string]string{"carrr": "[car]", "housee": "[house]", "lionn": "[lion]"}
+        // config file should mandatory have a aliase "en-ru":"enru"
         exampleAliases = map[string]bool{"enru": true, "er": false}
         params         []string
     )

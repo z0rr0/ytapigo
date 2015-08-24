@@ -40,6 +40,10 @@ func main() {
     if err != nil {
         panic(err)
     }
+    t := time.Now()
+    defer func() {
+        ytg.Duration(t)
+    }()
     if *langs {
         if langs, err := ytg.GetLangs(); err != nil {
             panic(err)
