@@ -249,7 +249,10 @@ func (jspell *JSONSpelResp) String() string {
 // the found element or -1.
 func StringBinarySearch(strs []string, s string, a int, b int) int {
     l := b - a
-    if l < 1 {
+    switch {
+    case l < 0:
+        return -1
+    case l < 1:
         if strs[a] == s {
             return a
         }
@@ -362,6 +365,9 @@ func (lch *LangsList) String() string {
 
 // Contains is an implementation of Contains() method for LangsList pointer (LangChecker interface).
 func (lch *LangsList) Contains(s string) bool {
+    if len(*lch) == 0 {
+        return false
+    }
     result := false
     if !sort.StringsAreSorted(*lch) {
         sort.Strings(*lch)
@@ -387,6 +393,9 @@ func (ltr *LangsListTr) String() string {
 // Contains is an implementation of Contains() method for LangsListTr
 // pointer (LangChecker interface).
 func (ltr *LangsListTr) Contains(s string) bool {
+    if len(ltr.Dirs) == 0 {
+        return false
+    }
     result := false
     if !sort.StringsAreSorted(ltr.Dirs) {
         sort.Strings(ltr.Dirs)
