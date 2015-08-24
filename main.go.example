@@ -17,7 +17,9 @@ const (
 
 var (
     // Programm version
-    Version string = "v0.0 git:000000 2015-01-01"
+    Version  = "v0.0"
+    Revision = "git:000000"
+    Date     = "2015-01-01_00:00:00UTC"
 )
 
 func main() {
@@ -32,7 +34,7 @@ func main() {
     version := flag.Bool("version", false, "print version")
     flag.Parse()
     if *version {
-        fmt.Printf("%v: %v\n", Name, Version)
+        fmt.Printf("%v: %v %v %v\n", Name, Version, Revision, Date)
         flag.PrintDefaults()
         return
     }
