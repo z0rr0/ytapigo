@@ -1,62 +1,65 @@
 package main
 
 import (
-    "flag"
-    "fmt"
-    "github.com/z0rr0/ytapigo"
-    "os"
+	"flag"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/z0rr0/ytapigo"
 )
 
 const (
-    // Name is a programm name
-    Name = "YtapiGo"
-    // CfgFile is a config file
-    // if not set, then HOME/.ytapigo.json is used
-    CfgFile = ""
+	// Name is a programm name
+	Name = "YtapiGo"
+	// CfgFile is a config file
+	// if not set, then HOME/.ytapigo.json is used
+	CfgFile = ""
 )
 
 var (
-    // Programm version
-    Version  = "v0.0"
-    Revision = "git:000000"
-    Date     = "2015-01-01_00:00:00UTC"
+	// Programm version
+	Version  = "v0.0"
+	Revision = "git:000000"
+	Date     = "2015-01-01_00:00:00UTC"
 )
 
 func main() {
-    defer func() {
-        if r := recover(); r != nil {
-            fmt.Printf("ERROR: %v\n", r)
-            os.Exit(1)
-        }
-    }()
-    langs := flag.Bool("langs", false, "show available languages")
-    debug := flag.Bool("debug", false, "debug mode")
-    version := flag.Bool("version", false, "print version")
-    flag.Parse()
-    if *version {
-        fmt.Printf("%v: %v %v %v\n", Name, Version, Revision, Date)
-        flag.PrintDefaults()
-        return
-    }
-    ytg, err := ytapigo.New(CfgFile, *debug)
-    if err != nil {
-        panic(err)
-    }
-    t := time.Now()
-    defer func() {
-        ytg.Duration(t)
-    }()
-    if *langs {
-        if langs, err := ytg.GetLangs(); err != nil {
-            panic(err)
-        } else {
-            fmt.Println(langs)
-        }
-    } else {
-        if s, t, err := ytg.GetTranslations(flag.Args()); err != nil {
-            panic(err)
-        } else {
-            fmt.Printf("%v\n%v\n", s, t)
-        }
-    }
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("ERROR: %v\n", r)
+			os.Exit(1)
+		}
+	}()
+	langs := flag.Bool("langs", false, "show available languages")
+	debug := flag.Bool("debug", false, "debug mode")
+	version := flag.Bool("version", false, "print version")
+	nocache := flag.Bool("nocache", false, "reset cache")
+	flag.Parse()
+	if *version {
+		fmt.Printf("%v: %v %v %v\n", Name, Version, Revision, Date)
+		flag.PrintDefaults()
+		return
+	}
+	ytg, err := ytapigo.New(CfgFile, *nocache, *debug)
+	if err != nil {
+		panic(err)
+	}
+	t := time.Now()
+	defer func() {
+		ytg.Duration(t)
+	}()
+	if *langs {
+		if langs, err := ytg.GetLangs(); err != nil {
+			panic(err)
+		} else {
+			fmt.Println(langs)
+		}
+	} else {
+		if s, t, err := ytg.GetTranslations(flag.Args()); err != nil {
+			panic(err)
+		} else {
+			fmt.Printf("%v\n%v\n", s, t)
+		}
+	}
 }
