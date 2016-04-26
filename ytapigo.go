@@ -1,4 +1,4 @@
-// Copyright (c) 2014, Alexander Zaytsev. All rights reserved.
+// Copyright (c) 2016, Alexander Zaytsev. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -248,29 +248,6 @@ func (jspell *JSONSpelResp) String() string {
 	return fmt.Sprintf("%v -> %v", jspell.Word, jspell.S)
 }
 
-// StringBinarySearch searches a string in a string array that is sorted in ascending order.
-// This function uses binary search method and returns an index of
-// the found element or -1.
-func StringBinarySearch(strs []string, s string, a int, b int) int {
-	l := b - a
-	switch {
-	case l < 0:
-		return -1
-	case l < 1:
-		if strs[a] == s {
-			return a
-		}
-		return -1
-	}
-	med := (b + a) / 2
-	if s > strs[med] {
-		a = med + 1
-	} else {
-		b = med
-	}
-	return StringBinarySearch(strs, s, a, b)
-}
-
 // readConfig reads YtapiGo configuration.
 func readConfig(file string) (*Config, error) {
 	if file == "" {
@@ -412,15 +389,17 @@ func (lch *LangsList) String() string {
 
 // Contains is an implementation of Contains() method for LangsList pointer (LangChecker interface).
 func (lch *LangsList) Contains(s string) bool {
-	if len(*lch) == 0 {
+	var data []string = *lch
+	if len(data) == 0 {
 		return false
 	}
 	result := false
-	if !sort.StringsAreSorted(*lch) {
-		sort.Strings(*lch)
+	if !sort.StringsAreSorted(data) {
+		sort.Strings(data)
 	}
-	if i := StringBinarySearch(*lch, s, 0, len(*lch)-1); i >= 0 {
-		result = true
+	i := sort.SearchStrings(data, s)
+	if i < len(data) && data[i] == s {
+		return true
 	}
 	return result
 }
@@ -443,14 +422,14 @@ func (ltr *LangsListTr) Contains(s string) bool {
 	if len(ltr.Dirs) == 0 {
 		return false
 	}
-	result := false
 	if !sort.StringsAreSorted(ltr.Dirs) {
 		sort.Strings(ltr.Dirs)
 	}
-	if i := StringBinarySearch(ltr.Dirs, s, 0, len(ltr.Dirs)-1); i >= 0 {
-		result = true
+	i := sort.SearchStrings(ltr.Dirs, s)
+	if i < len(ltr.Dirs) && ltr.Dirs[i] == s {
+		return true
 	}
-	return result
+	return false
 }
 
 // Description is an implementation of Description() method
@@ -524,7 +503,8 @@ func (ytg *YtapiGo) aliasDirection(direction string, langs *string, isalias *boo
 	}
 	alias := direction
 	for k, v := range ytg.Cfg.Aliases {
-		if i := StringBinarySearch(v, alias, 0, len(v)-1); i >= 0 {
+		i := sort.SearchStrings(v, alias)
+		if i < len(v) && v[i] == alias {
 			alias = k
 			break
 		}
