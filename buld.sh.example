@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Build script
+# -v - verbose mode
+# -f - force mode
+# -a - cross-compile
+
+program="YtapiGo"
+gobin="`which go`"
+gitbin="`which git`"
+buildrep="github.com/z0rr0/main"
+repo="github.com/z0rr0/ytapigo"
+verbose=""
+
+if [ -z "$GOPATH" ]; then
+    echo "ERROR: set $GOPATH env"
+    exit 1
+fi
+if [ ! -x "$gobin" ]; then
+    echo "ERROR: can't find 'go' binary"
+    exit 2
+fi
+if [ ! -x "$gitbin" ]; then
+    echo "ERROR: can't find 'git' binary"
+    exit 3
+fi
+
+function debug() {
+    if [ -n $verbose ]; then
+        echo $1
+    fi
+}
+
+cd ${GOPATH}/src/${repo}
+gittag="`$gitbin tag | sort --version-sort | tail -1`"
+gitver="`$gitbin log --oneline | head -1 `"
+build="`date --utc +\"%F_%T\"`UTC"
+gitver="git:${gitver:0:7}"
+vars="-X main.Version=$gittag -X main.Revision=$gitver -X main.Date=$build"
+
+options=""
+while getopts ":fv" opt; do
+    case $opt in
+        f)
+            options="$options -a"
+            ;;
+        v)
+            options="$options -v"
+            verbose="verbose"
+            echo "$program version: $version"
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            ;;
+    esac
+done
+
+# cd ${GOPATH}/src/${repo}
+$gobin test -v -cover -coverprofile=coverage.out || exit 1
+
+echo install $options -ldflags "$vars" $buildrep
+$gobin install $options -ldflags "$vars" $buildrep
+exit 0
