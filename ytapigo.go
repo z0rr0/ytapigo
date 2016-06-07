@@ -285,6 +285,9 @@ func New(filename string, nocache, debug bool) (*YtapiGo, error) {
 		logDebug = log.New(os.Stdout, fmt.Sprintf(traceMsg, "DEBUG"), log.Ldate|log.Lmicroseconds|log.Lshortfile)
 	}
 	ytg := &YtapiGo{cfg, debug, logErr, logDebug}
+	if nocache {
+		ytg.cleanCache()
+	}
 	return ytg, nil
 }
 
@@ -336,6 +339,18 @@ func (ytg *YtapiGo) setCacheLangList(dict bool, lc LangChecker) error {
 		return err
 	}
 	return ioutil.WriteFile(tmpfile, body, 0600)
+}
+
+// cleanCache cleans files language cache
+func (ytg *YtapiGo) cleanCache() {
+	langCache := filepath.Join(os.TempDir(), cacheLangs)
+	dictCache := filepath.Join(os.TempDir(), cacheDictLangs)
+	if err := os.Remove(langCache); err != nil {
+		ytg.logDebug.Println(err)
+	}
+	if err := os.Remove(dictCache); err != nil {
+		ytg.logDebug.Println(err)
+	}
 }
 
 // getLangsList gets LangChecker interface as a result to check available languages.
