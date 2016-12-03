@@ -299,12 +299,13 @@ func (ytg *YtapiGo) request(url string, params *url.Values) ([]byte, error) {
 		TLSHandshakeTimeout: 10 * time.Second,
 	}
 	client := &http.Client{Transport: tr}
+	ytg.logDebug.Printf("start %v\n", url)
 	resp, err := client.PostForm(url, *params)
 	if err != nil {
-		return result, fmt.Errorf("network connection problems")
+		return result, fmt.Errorf("network connection problems: %v", err)
 	}
 	defer resp.Body.Close()
-	ytg.logDebug.Printf("%v: %v\n", resp.Request.Method, resp.Request.URL)
+	ytg.logDebug.Printf("done %v: %v\n", resp.Request.Method, resp.Request.URL)
 	if resp.StatusCode != 200 {
 		return result, fmt.Errorf("wrong response code=%v", resp.StatusCode)
 	}
