@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/z0rr0/ytapigo"
@@ -18,10 +19,14 @@ const (
 )
 
 var (
-	// Programm version
-	Version  = "v0.0"
+	// Version is a version from GIT tags
+	Version = "0.0.0"
+	// Revision is GIT revision number
 	Revision = "git:000000"
-	Date     = "2015-01-01_00:00:00UTC"
+	// Date is build date
+	Date = "2016-01-01_01:01:01UTC"
+	// GoVersion is runtime Go language version
+	GoVersion = runtime.Version()
 )
 
 func main() {
@@ -37,7 +42,7 @@ func main() {
 	nocache := flag.Bool("nocache", false, "reset cache")
 	flag.Parse()
 	if *version {
-		fmt.Printf("%v: %v %v %v\n", Name, Version, Revision, Date)
+		fmt.Printf("%v: %v %v %v %v\n", Name, Version, Revision, GoVersion, Date)
 		flag.PrintDefaults()
 		return
 	}
