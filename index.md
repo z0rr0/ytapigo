@@ -12,7 +12,7 @@ A spell check is supported only for English, Russian and Ukrainian languages.
 ### Usage
 
 
-See example in [main.go.example](https://github.com/z0rr0/ytapigo/main.go.example).
+See example in [main.go.example](https://github.com/z0rr0/ytapigo/blob/master/main.go.example).
 
 The latest versions of binary files are available in [Releases](https://github.com/z0rr0/ytapigo/releases)
 
@@ -22,6 +22,18 @@ Usage:
 chmod u+x ytapigo
 ./ytapigo en-fr Hello dear fried!
 # output: Bonjour chers frit!
+
+./ytapigo en-ru lion
+lion [ˈlaɪən] ()
+        лев (noun)
+        syn: львенок (noun)
+        mean: lev, cub
+        examples:
+                sea lion: морской лев
+lion [ˈlaɪən] ()
+        львиный (adjective)
+        examples:
+                lion's share: львиная доля
 ```
 
 ### Dependencies
@@ -40,7 +52,8 @@ Users should get API KEYs before an using this program, these values have to be 
     "en-ru": ["en", "англ", "e"],
     "ru-en": ["ru", "ру" "r"]
   },
-  "Default": "en-ru"                // default translation direction
+  "Default": "en-ru",               // default translation direction
+  "Timeout": 5                      // connection timeout, default 10 seconds
 }
 ```
 
