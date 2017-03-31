@@ -18,7 +18,7 @@ The latest versions of binary files are available in [Releases](https://github.c
 
 Usage:
 
-```shell
+```
 chmod u+x ytapigo
 ./ytapigo en-fr Hello dear fried!
 # output: Bonjour chers frit!
@@ -44,7 +44,7 @@ Standard [Go library](http://golang.org/pkg/).
 
 Users should get API KEYs before an using this program, these values have to be written to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one can have a list of possible user's aliases.
 
-```javascript
+```
 {
   "APItr": "some key value",
   "APIdict": "some key value",
