@@ -29,4 +29,4 @@ linux:
 	env GOOS=linux GOARCH=amd64 go install -ldflags "$(VERSION)" $(MAIN)
 
 clean:
-	rm -rf $(GOPATH)/$(BIN)/* $(GOPATH)/$(SOURCEDIR)/*.out $(GOPATH)/src/$(MAIN)/*.out
+	rm -rf $(GOPATH)/$(BIN) $(GOPATH)/$(SOURCEDIR)/*.out $(GOPATH)/src/$(MAIN)/*.out

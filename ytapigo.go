@@ -30,9 +30,10 @@ const (
 	ConfName string = ".ytapigo.json"
 	traceMsg string = "%v [YtapiGo]: "
 
-	cacheLangs     = "ytapigo_langs.json"
-	cacheDictLangs = "ytapigo_dict_langs.json"
-	userAgent      = "YtapiGo/1.0"
+	cacheLangs          = "ytapigo_langs.json"
+	cacheDictLangs      = "ytapigo_dict_langs.json"
+	userAgent           = "YtapiGo/1.0"
+	defaultTimeout uint = 10
 )
 
 var (
@@ -277,6 +278,9 @@ func readConfig(file string) (*Config, error) {
 	}
 	for key := range cfg.Aliases {
 		sort.Strings(cfg.Aliases[key])
+	}
+	if cfg.Timeout == 0 {
+		cfg.Timeout = defaultTimeout
 	}
 	return cfg, nil
 }
