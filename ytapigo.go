@@ -9,6 +9,7 @@ package ytapigo
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,11 +31,11 @@ const (
 	ConfName string = ".ytapigo.json"
 	traceMsg string = "%v [Ytapi]: "
 
-	cacheLangs          = "ytapigo_langs.json"
-	cacheDictLangs      = "ytapigo_dict_langs.json"
-	cacheAuth           = "ytapigo.auth"
-	userAgent           = "Ytapi/2.0"
-	defaultTimeout uint = 10
+	cacheTrLanguages        = "ytapigo_langs.json"
+	cacheDictLanguages      = "ytapigo_dict_langs.json"
+	cacheAuth               = "ytapigo.auth"
+	userAgent               = "Ytapi/2.0"
+	defaultTimeout     uint = 10
 
 	// expirationAuth is auth "iamToken" expiration period.
 	expirationAuth = time.Duration(12 * time.Hour)
@@ -93,6 +94,7 @@ type Config struct {
 	S       Services  `json:"services"`
 	L       Languages `json:"languages"`
 	Timeout uint      `json:"timeout"`
+	key     map[string]*rsa.PrivateKey
 }
 
 // Ytapi is a main structure
@@ -145,8 +147,8 @@ func New(filename string, nocache, debug bool) (*Ytapi, error) {
 	tmpDir := os.TempDir()
 	// alias: file path
 	caches := map[string]string{
-		"tr":   filepath.Join(tmpDir, cacheLangs),
-		"dict": filepath.Join(tmpDir, cacheDictLangs),
+		"tr":   filepath.Join(tmpDir, cacheTrLanguages),
+		"dict": filepath.Join(tmpDir, cacheDictLanguages),
 		"auth": filepath.Join(tmpDir, cacheAuth),
 	}
 	ytg := &Ytapi{
@@ -206,9 +208,9 @@ func (ytg *Ytapi) request(url string, params *url.Values) ([]byte, error) {
 func (ytg *Ytapi) getCacheLangList(dict bool) ([]byte, error) {
 	var tmpFile string
 	if dict {
-		tmpFile = filepath.Join(os.TempDir(), cacheDictLangs)
+		tmpFile = filepath.Join(os.TempDir(), cacheDictLanguages)
 	} else {
-		tmpFile = filepath.Join(os.TempDir(), cacheLangs)
+		tmpFile = filepath.Join(os.TempDir(), cacheTrLanguages)
 	}
 	return ioutil.ReadFile(tmpFile)
 }
@@ -217,9 +219,9 @@ func (ytg *Ytapi) getCacheLangList(dict bool) ([]byte, error) {
 func (ytg *Ytapi) setCacheLangList(dict bool, lc LangChecker) error {
 	var tmpfile string
 	if dict {
-		tmpfile = filepath.Join(os.TempDir(), cacheDictLangs)
+		tmpfile = filepath.Join(os.TempDir(), cacheDictLanguages)
 	} else {
-		tmpfile = filepath.Join(os.TempDir(), cacheLangs)
+		tmpfile = filepath.Join(os.TempDir(), cacheTrLanguages)
 	}
 	body, err := json.Marshal(lc)
 	if err != nil {
