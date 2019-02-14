@@ -1,10 +1,14 @@
 {
-  "APItr": "key value",
-  "APIdict": "key value",
-  "Aliases": {
-    "en-ru": ["enru", "en", "англ"],
-    "ru-en": ["ruen", "ru", "ру"]
+  "services": {
+    "translation": {"folder":  "folder_id", "token":  "oauth token"},
+    "dictionary": "token"
   },
-  "Default": "en-ru",
-  "Timeout": 5
+  "languages": {
+    "default": "en-ru",
+    "aliases": {
+      "en-ru": ["enru", "en", "англ"],
+      "ru-en": ["ruen", "ru", "ру"]
+    }
+  },
+  "timeout": 5
 }

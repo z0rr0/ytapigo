@@ -13,8 +13,8 @@ import (
 )
 
 func TestGetLangs(t *testing.T) {
-	// LangsList
-	ll := &LangsList{"en-ru", "ru-en", "fr-en"}
+	// DictionaryLanguages
+	ll := &DictionaryLanguages{"en-ru", "ru-en", "fr-en"}
 	if ll.String() != "en-ru, ru-en, fr-en" {
 		t.Errorf("incorrect result")
 	}
@@ -27,8 +27,8 @@ func TestGetLangs(t *testing.T) {
 	if ll.Contains("jp-en") == true {
 		t.Errorf("incorrect result")
 	}
-	// LangsListTr
-	lltr := &LangsListTr{
+	// TranslateLanguages
+	lltr := &TranslateLanguages{
 		[]string{"en-ru", "ru-en", "fr-en", "de-en"},
 		map[string]string{"en": "English", "ru": "Russina", "fr": "French", "de": "German"},
 	}
@@ -38,7 +38,7 @@ func TestGetLangs(t *testing.T) {
 	if len(lltr.Description()) == 0 {
 		t.Errorf("incorrect result")
 	}
-	lltr = &LangsListTr{
+	lltr = &TranslateLanguages{
 		[]string{"en-ru", "ru-en", "fr-en", "de-en"},
 		map[string]string{"en": "English", "ru": "Russina", "fr": "French"},
 	}
@@ -64,15 +64,15 @@ func TestGetLangs(t *testing.T) {
 			t.Errorf("empty langs")
 		}
 	}
-	jsr1 := &JSONSpelResp{}
+	jsr1 := &SpellerItem{}
 	if jsr1.Exists() == true {
 		t.Errorf("incorrect result")
 	}
-	jsr2 := &JSONTrResp{}
+	jsr2 := &TranslateResponse{}
 	if jsr2.Exists() == true {
 		t.Errorf("incorrect result")
 	}
-	jsr3 := &JSONTrDict{}
+	jsr3 := &DictionaryResponse{}
 	if jsr3.Exists() == true {
 		t.Errorf("incorrect result")
 	}

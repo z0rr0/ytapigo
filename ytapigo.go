@@ -1,4 +1,4 @@
-// Copyright (c) 2017, Alexander Zaytsev. All rights reserved.
+// Copyright (c) 2019, Alexander Zaitsev <me@axv.email>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -28,34 +28,37 @@ import (
 const (
 	// ConfName is a name of configuration file
 	ConfName string = ".ytapigo.json"
-	traceMsg string = "%v [YtapiGo]: "
+	traceMsg string = "%v [Ytapi]: "
 
 	cacheLangs          = "ytapigo_langs.json"
 	cacheDictLangs      = "ytapigo_dict_langs.json"
-	userAgent           = "YtapiGo/1.0"
+	cacheAuth           = "ytapigo.auth"
+	userAgent           = "Ytapi/2.0"
 	defaultTimeout uint = 10
+
+	// expirationAuth is auth "iamToken" expiration period.
+	expirationAuth = time.Duration(12 * time.Hour)
 )
 
 var (
-	// ytJSONUrls is an array of API URLs:
-	// 0-Spelling
-	// 1-Translation
-	// 2-Dictionary
-	// 3-Translation directions
-	// 4-Dictionary directions
-	ytJSONUrls = [5]string{
-		"http://speller.yandex.net/services/spellservice.json/checkText",
-		"https://translate.yandex.net/api/v1.5/tr.json/translate",
-		"https://dictionary.yandex.net/api/v1/dicservice.json/lookup",
-		"https://translate.yandex.net/api/v1.5/tr.json/getLangs",
-		"https://dictionary.yandex.net/api/v1/dicservice.json/getLangs",
+	// ServiceURLs contains map of used API URLs
+	ServiceURLs = map[string]string{
+		"spelling":         "http://speller.yandex.net/services/spellservice.json/checkText",
+		"translate":        "https://translate.api.cloud.yandex.net/translate/v2/translate",
+		"dictionary":       "https://dictionary.yandex.net/api/v1/dicservice.json/lookup",
+		"translate_langs":  "https://translate.api.cloud.yandex.net/translate/v2/languages",
+		"dictionary_langs": "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs",
+		"translate_token":  "https://iam.api.cloud.yandex.net/iam/v1/tokens",
 	}
-	// LdPattern is a regexp pattern to detect language direction.
-	LdPattern = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
+	// LangDirection is a regexp pattern to detect language direction.
+	LangDirection = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
+
+	loggerError = log.New(os.Stderr, fmt.Sprintf(traceMsg, "ERROR"), log.Ldate|log.Ltime|log.Lshortfile)
+	loggerDebug = log.New(ioutil.Discard, fmt.Sprintf(traceMsg, "DEBUG"), log.Ldate|log.Lmicroseconds|log.Lshortfile)
 )
 
-// Translater is an interface to prepare JSON translation response.
-type Translater interface {
+// Translator is an interface to prepare JSON translation response.
+type Translator interface {
 	String() string
 	Exists() bool
 }
@@ -67,198 +70,40 @@ type LangChecker interface {
 	Description() string
 }
 
-// YtapiGo is a main structure
-type YtapiGo struct {
-	Cfg      *Config
-	Debug    bool
-	nocache  bool
-	timeout  time.Duration
-	client   *http.Client
-	logError *log.Logger
-	logDebug *log.Logger
+// ConfigCloudItem is API auth info struct.
+type ConfigCloudItem struct {
+	Folder string `json:"folder"`
+	Token  string `json:"token"`
+}
+
+// Services is a struct of used services.
+type Services struct {
+	Translation ConfigCloudItem `json:"translation"`
+	Dictionary  string          `json:"dictionary"`
+}
+
+// Languages is languages configuration.
+type Languages struct {
+	Default string              `json:"default"`
+	Aliases map[string][]string `json:"aliases"`
 }
 
 // Config is current configuration info.
 type Config struct {
-	APItr   string              `json:"APItr"`
-	APIdict string              `json:"APIdict"`
-	Aliases map[string][]string `json:"Aliases"`
-	Default string              `json:"Default"`
-	Timeout uint                `json:"Timeout"`
+	S       Services  `json:"services"`
+	L       Languages `json:"languages"`
+	Timeout uint      `json:"timeout"`
 }
 
-// LangsList is a  list of dictionary's languages (from JSON response).
-// It is sorted in ascending order.
-type LangsList []string
-
-// LangsListTr is a list of translation's languages (from JSON response).
-// "Dirs" field is an array that sorted in ascending order.
-type LangsListTr struct {
-	Dirs  []string          `json:"dirs"`
-	Langs map[string]string `json:"langs"`
+// Ytapi is a main structure
+type Ytapi struct {
+	Cfg     *Config
+	timeout time.Duration
+	client  *http.Client
+	caches  map[string]string
 }
 
-// JSONSpelResp is a type of a spell check (from JSON response).
-// It supports "Translater" interface.
-type JSONSpelResp struct {
-	Word string   `json:"word"`
-	S    []string `json:"s"`
-	Code float64  `json:"code"`
-	Pos  float64  `json:"pos"`
-	Row  float64  `json:"row"`
-	Col  float64  `json:"col"`
-	Len  float64  `json:"len"`
-}
-
-// JSONSpelResps is an array of spelling results.
-type JSONSpelResps []JSONSpelResp
-
-// JSONTrResp is a type of a translation (from JSON response).
-// It supports "Translater" interface.
-type JSONTrResp struct {
-	Code float64  `json:"code"`
-	Lang string   `json:"lang"`
-	Text []string `json:"text"`
-}
-
-// JSONTrDictExample is an internal type of JSONTrDict.
-type JSONTrDictExample struct {
-	Pos  string              `json:"pos"`
-	Text string              `json:"text"`
-	Tr   []map[string]string `json:"tr"`
-}
-
-// JSONTrDictItem is an internal type of JSONTrDict.
-type JSONTrDictItem struct {
-	Text string              `json:"text"`
-	Pos  string              `json:"pos"`
-	Syn  []map[string]string `json:"syn"`
-	Mean []map[string]string `json:"mean"`
-	Ex   []JSONTrDictExample `json:"ex"`
-}
-
-// JSONTrDictArticle is an internal type of JSONTrDict.
-type JSONTrDictArticle struct {
-	Pos  string           `json:"post"`
-	Text string           `json:"text"`
-	Ts   string           `json:"ts"`
-	Gen  string           `json:"gen"`
-	Tr   []JSONTrDictItem `json:"tr"`
-}
-
-// JSONTrDict is a type of a translation dictionary (from JSON response).
-// It supports "Translater" interface.
-type JSONTrDict struct {
-	Head map[string]string   `json:"head"`
-	Def  []JSONTrDictArticle `json:"def"`
-}
-
-// String is an implementation of String() method for JSONTrResp pointer.
-func (jstr *JSONTrResp) String() string {
-	if len(jstr.Text) == 0 {
-		return ""
-	}
-	return jstr.Text[0]
-}
-
-// Exists is an implementation of Exists() method for JSONTrResp pointer.
-func (jstr *JSONTrResp) Exists() bool {
-	if jstr.String() != "" {
-		return true
-	}
-	return false
-}
-
-// Exists is an implementation of Exists() method for JSONTrDict pointer.
-func (jstr *JSONTrDict) Exists() bool {
-	if jstr.String() != "" {
-		return true
-	}
-	return false
-}
-
-// String is an implementation of String() method for JSONTrDict pointer.
-// It returns a pretty formatted string.
-func (jstr *JSONTrDict) String() string {
-	var (
-		result, arResult, syn, mean, ex, extr []string
-		txtResult, txtSyn, txtMean, txtEx     string
-	)
-	result = make([]string, len(jstr.Def))
-	for i, def := range jstr.Def {
-		ts := ""
-		if def.Ts != "" {
-			ts = fmt.Sprintf(" [%v] ", def.Ts)
-		}
-		txtResult = fmt.Sprintf("%v%v(%v)", def.Text, ts, def.Pos)
-		arResult = make([]string, len(def.Tr))
-		for j, tr := range def.Tr {
-			syn, mean, ex = make([]string, len(tr.Syn)), make([]string, len(tr.Mean)), make([]string, len(tr.Ex))
-			txtSyn, txtMean, txtEx = "", "", ""
-			for k, v := range tr.Syn {
-				syn[k] = fmt.Sprintf("%v (%v)", v["text"], v["pos"])
-			}
-			for k, v := range tr.Mean {
-				mean[k] = v["text"]
-			}
-			for k, v := range tr.Ex {
-				extr = make([]string, len(v.Tr))
-				for t, trv := range v.Tr {
-					extr[t] = trv["text"]
-				}
-				ex[k] = fmt.Sprintf("%v: %v", v.Text, strings.Join(extr, ", "))
-			}
-			if len(syn) > 0 {
-				txtSyn = fmt.Sprintf("\n\tsyn: %v", strings.Join(syn, ", "))
-			}
-			if len(mean) > 0 {
-				txtMean = fmt.Sprintf("\n\tmean: %v", strings.Join(mean, ", "))
-			}
-			if len(ex) > 0 {
-				txtEx = fmt.Sprintf("\n\texamples: \n\t\t%v", strings.Join(ex, "\n\t\t"))
-			}
-
-			arResult[j] = fmt.Sprintf("\t%v (%v)%v%v%v", tr.Text, tr.Pos, txtSyn, txtMean, txtEx)
-		}
-		result[i] = fmt.Sprintf("%v\n%v", txtResult, strings.Join(arResult, "\n"))
-	}
-	return strings.Join(result, "\n")
-}
-
-// Exists is an implementation of Exists() method for JSONSpelResps pointer.
-func (jspells *JSONSpelResps) Exists() bool {
-	if len(*jspells) > 0 {
-		return true
-	}
-	return false
-}
-
-// String is an implementation of String() method for JSONSpelResps pointer.
-func (jspells *JSONSpelResps) String() string {
-	spellstr := make([]string, len(*jspells))
-	for i, v := range *jspells {
-		if v.Exists() {
-			spellstr[i] = v.String()
-		}
-	}
-	return fmt.Sprintf("Spelling: \n\t%v", strings.Join(spellstr, "\n\t"))
-}
-
-// Exists is an implementation of Exists() method for JSONSpelResp pointer
-// (Translater interface).
-func (jspell *JSONSpelResp) Exists() bool {
-	if (len(jspell.Word) > 0) || (len(jspell.S) > 0) {
-		return true
-	}
-	return false
-}
-
-// String is an implementation of String() method for JSONSpelResp pointer.
-func (jspell *JSONSpelResp) String() string {
-	return fmt.Sprintf("%v -> %v", jspell.Word, jspell.S)
-}
-
-// readConfig reads YtapiGo configuration.
+// readConfig reads Ytapi configuration.
 func readConfig(file string) (*Config, error) {
 	if file == "" {
 		file = filepath.Join(os.Getenv("HOME"), ConfName)
@@ -267,17 +112,17 @@ func readConfig(file string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	jsondata, err := ioutil.ReadFile(file)
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 	cfg := &Config{}
-	err = json.Unmarshal(jsondata, &cfg)
+	err = json.Unmarshal(data, &cfg)
 	if err != nil {
 		return nil, err
 	}
-	for key := range cfg.Aliases {
-		sort.Strings(cfg.Aliases[key])
+	for key := range cfg.L.Aliases {
+		sort.Strings(cfg.L.Aliases[key])
 	}
 	if cfg.Timeout == 0 {
 		cfg.Timeout = defaultTimeout
@@ -285,40 +130,39 @@ func readConfig(file string) (*Config, error) {
 	return cfg, nil
 }
 
-// New creates new YtapiGo structure
-func New(filename string, nocache, debug bool) (*YtapiGo, error) {
+// New creates new Ytapi structure
+func New(filename string, nocache, debug bool) (*Ytapi, error) {
 	cfg, err := readConfig(filename)
 	if err != nil {
 		return nil, err
 	}
-	logErr := log.New(os.Stderr, fmt.Sprintf(traceMsg, "ERROR"),
-		log.Ldate|log.Ltime|log.Lshortfile)
-	logDebug := log.New(ioutil.Discard, fmt.Sprintf(traceMsg, "DEBUG"),
-		log.Ldate|log.Lmicroseconds|log.Lshortfile)
 	if debug {
-		logDebug = log.New(os.Stdout, fmt.Sprintf(traceMsg, "DEBUG"),
-			log.Ldate|log.Lmicroseconds|log.Lshortfile)
+		loggerDebug.SetOutput(os.Stdout)
 	}
 	tr := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 	}
-	ytg := &YtapiGo{
-		Cfg:      cfg,
-		Debug:    debug,
-		nocache:  nocache,
-		logError: logErr,
-		logDebug: logDebug,
-		timeout:  time.Duration(cfg.Timeout) * time.Second,
-		client:   &http.Client{Transport: tr},
+	tmpDir := os.TempDir()
+	// alias: file path
+	caches := map[string]string{
+		"tr":   filepath.Join(tmpDir, cacheLangs),
+		"dict": filepath.Join(tmpDir, cacheDictLangs),
+		"auth": filepath.Join(tmpDir, cacheAuth),
 	}
-	if ytg.nocache {
+	ytg := &Ytapi{
+		Cfg:     cfg,
+		timeout: time.Duration(cfg.Timeout) * time.Second,
+		client:  &http.Client{Transport: tr},
+		caches:  caches,
+	}
+	if nocache {
 		ytg.cleanCache()
 	}
 	return ytg, nil
 }
 
 // Request is a common method to send POST request and get []byte response.
-func (ytg *YtapiGo) request(url string, params *url.Values) ([]byte, error) {
+func (ytg *Ytapi) request(url string, params *url.Values) ([]byte, error) {
 	var resp *http.Response
 	req, err := http.NewRequest("POST", url, strings.NewReader(params.Encode()))
 	if err != nil {
@@ -347,7 +191,7 @@ func (ytg *YtapiGo) request(url string, params *url.Values) ([]byte, error) {
 		}
 	}
 	defer resp.Body.Close()
-	ytg.logDebug.Printf("done %v [%v]: %v\n", resp.Request.Method, resp.StatusCode, resp.Request.URL)
+	loggerDebug.Printf("done %v [%v]: %v\n", resp.Request.Method, resp.StatusCode, resp.Request.URL)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("wrong response code=%v", resp.StatusCode)
 	}
@@ -359,7 +203,7 @@ func (ytg *YtapiGo) request(url string, params *url.Values) ([]byte, error) {
 }
 
 // getCacheLangList tries to find languages lists from file cache.
-func (ytg *YtapiGo) getCacheLangList(dict bool) ([]byte, error) {
+func (ytg *Ytapi) getCacheLangList(dict bool) ([]byte, error) {
 	var tmpFile string
 	if dict {
 		tmpFile = filepath.Join(os.TempDir(), cacheDictLangs)
@@ -370,7 +214,7 @@ func (ytg *YtapiGo) getCacheLangList(dict bool) ([]byte, error) {
 }
 
 // setCacheLangList saves languages stucture lc to temporary file.
-func (ytg *YtapiGo) setCacheLangList(dict bool, lc LangChecker) error {
+func (ytg *Ytapi) setCacheLangList(dict bool, lc LangChecker) error {
 	var tmpfile string
 	if dict {
 		tmpfile = filepath.Join(os.TempDir(), cacheDictLangs)
@@ -384,21 +228,19 @@ func (ytg *YtapiGo) setCacheLangList(dict bool, lc LangChecker) error {
 	return ioutil.WriteFile(tmpfile, body, 0640)
 }
 
-// cleanCache cleans files language cache
-func (ytg *YtapiGo) cleanCache() {
-	langCache := filepath.Join(os.TempDir(), cacheLangs)
-	dictCache := filepath.Join(os.TempDir(), cacheDictLangs)
-	if err := os.Remove(langCache); err != nil {
-		ytg.logDebug.Println(err)
-	}
-	if err := os.Remove(dictCache); err != nil {
-		ytg.logDebug.Println(err)
+// cleanCache removes cache files.
+func (ytg *Ytapi) cleanCache() {
+	for _, f := range ytg.caches {
+		// ignore errors without debug
+		if err := os.Remove(f); err != nil {
+			loggerDebug.Println(err)
+		}
 	}
 }
 
 // getLangsList gets LangChecker interface as a result to check available languages.
 // It uses dictservice request if dict is true.
-func (ytg *YtapiGo) getLangsList(dict bool, c chan LangChecker) {
+func (ytg *Ytapi) getLangsList(dict bool, c chan LangChecker) {
 	var (
 		result LangChecker
 		params url.Values
@@ -407,10 +249,10 @@ func (ytg *YtapiGo) getLangsList(dict bool, c chan LangChecker) {
 		err    error
 	)
 	if dict {
-		result = &LangsList{}
+		result = &DictionaryLanguages{}
 		urlstr, params = ytJSONUrls[4], url.Values{"key": {ytg.Cfg.APIdict}}
 	} else {
-		result = &LangsListTr{}
+		result = &TranslateLanguages{}
 		urlstr, params = ytJSONUrls[3], url.Values{"key": {ytg.Cfg.APItr}, "ui": {"en"}}
 	}
 	if ytg.nocache {
@@ -418,114 +260,31 @@ func (ytg *YtapiGo) getLangsList(dict bool, c chan LangChecker) {
 	} else {
 		body, err = ytg.getCacheLangList(dict)
 		if err != nil {
-			ytg.logDebug.Println("language chache file is not found")
+			loggerDebug.Println("language chache file is not found")
 			body, err = ytg.request(urlstr, &params)
 		}
 	}
 	if err != nil {
-		ytg.logError.Println(err)
+		loggerError.Println(err)
 		c <- result
 		return
 	}
 	if err := json.Unmarshal(body, result); err != nil {
-		ytg.logError.Println(err)
+		loggerError.Println(err)
 		c <- result
 		return
 	}
 	// result is immutable
 	if !ytg.nocache {
 		if err := ytg.setCacheLangList(dict, result); err != nil {
-			ytg.logError.Println(err)
+			loggerError.Println(err)
 		}
 	}
 	c <- result
 }
 
-// String is an implementation of String() method for LangsList pointer (LangChecker interface).
-func (lch *LangsList) String() string {
-	return fmt.Sprintf("%v", strings.Join(*lch, ", "))
-}
-
-// Contains is an implementation of Contains() method for LangsList pointer (LangChecker interface).
-func (lch *LangsList) Contains(s string) bool {
-	var data []string = *lch
-	if len(data) == 0 {
-		return false
-	}
-	if !sort.StringsAreSorted(data) {
-		sort.Strings(data)
-	}
-	if i := sort.SearchStrings(data, s); i < len(data) && data[i] == s {
-		return true
-	}
-	return false
-}
-
-// Description is an implementation of Description() method for
-// LangsList pointer (LangChecker interface).
-func (lch *LangsList) Description() string {
-	return fmt.Sprintf("Length=%v\n%v", len(*lch), lch.String())
-}
-
-// String is an implementation of String() method for LangsListTr
-// pointer (LangChecker interface).
-func (ltr *LangsListTr) String() string {
-	return fmt.Sprintf("%v", strings.Join(ltr.Dirs, ", "))
-}
-
-// Contains is an implementation of Contains() method for LangsListTr
-// pointer (LangChecker interface).
-func (ltr *LangsListTr) Contains(s string) bool {
-	if len(ltr.Dirs) == 0 {
-		return false
-	}
-	if !sort.StringsAreSorted(ltr.Dirs) {
-		sort.Strings(ltr.Dirs)
-	}
-	if i := sort.SearchStrings(ltr.Dirs, s); i < len(ltr.Dirs) && ltr.Dirs[i] == s {
-		return true
-	}
-	return false
-}
-
-// Description is an implementation of Description() method
-// for LangsListTr pointer (LangChecker interface).
-func (ltr *LangsListTr) Description() string {
-	const n int = 3
-	var (
-		collen, counter int
-	)
-	counter = len(ltr.Langs)
-	i, descstr := 0, make([]string, counter)
-	for k, v := range ltr.Langs {
-		if len(v) > 0 {
-			descstr[i] = fmt.Sprintf("%v - %v", k, v)
-			i++
-		}
-	}
-	sort.Strings(descstr)
-
-	if (counter % n) != 0 {
-		collen = counter/n + 1
-	} else {
-		collen = counter / n
-	}
-	output := make([]string, collen)
-	for j := 0; j < collen; j++ {
-		switch {
-		case j+2*collen < counter:
-			output[j] = fmt.Sprintf("%-25v %-25v %-25v", descstr[j], descstr[j+collen], descstr[j+2*collen])
-		case j+collen < counter:
-			output[j] = fmt.Sprintf("%-25v %-25v", descstr[j], descstr[j+collen])
-		default:
-			output[j] = fmt.Sprintf("%-25v", descstr[j])
-		}
-	}
-	return strings.Join(output, "\n")
-}
-
 // GetLangs returns a list of available languages for current configuration.
-func (ytg *YtapiGo) GetLangs() (string, error) {
+func (ytg *Ytapi) GetLangs() (string, error) {
 	langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
 	go ytg.getLangsList(true, langsDic)
 	go ytg.getLangsList(false, langsTr)
@@ -541,7 +300,7 @@ func (ytg *YtapiGo) GetLangs() (string, error) {
 
 // direction verifies translation direction,
 // checks its support by dictionary and translate API.
-func (ytg *YtapiGo) direction(direction string) (bool, bool) {
+func (ytg *Ytapi) direction(direction string) (bool, bool) {
 	if direction == "" {
 		return false, false
 	}
@@ -554,7 +313,7 @@ func (ytg *YtapiGo) direction(direction string) (bool, bool) {
 
 // aliasDirection verifies translation direction,
 // checks its support by dictionary and translate API, but additionally considers users' aliases.
-func (ytg *YtapiGo) aliasDirection(direction string, langs *string, isAlias *bool) (bool, bool) {
+func (ytg *Ytapi) aliasDirection(direction string, langs *string, isAlias *bool) (bool, bool) {
 	*langs, *isAlias = ytg.Cfg.Default, false
 	if direction == "" {
 		return false, false
@@ -571,21 +330,21 @@ func (ytg *YtapiGo) aliasDirection(direction string, langs *string, isAlias *boo
 	go ytg.getLangsList(false, langsTr)
 	lchDic, lchTr := <-langsDic, <-langsTr
 
-	if LdPattern.MatchString(alias) {
-		ytg.logDebug.Printf("maybe it is a direction \"%v\"", alias)
+	if LangDirection.MatchString(alias) {
+		loggerDebug.Printf("maybe it is a direction \"%v\"", alias)
 		lchdOk, lchtrOk := lchDic.Contains(alias), lchTr.Contains(alias)
 		if lchdOk || lchtrOk {
 			*langs, *isAlias = alias, true
 			return lchdOk, lchtrOk
 		}
 	}
-	ytg.logDebug.Printf("not found lang for alias \"%v\", default direction \"%v\" will be used.",
+	loggerDebug.Printf("not found lang for alias \"%v\", default direction \"%v\" will be used.",
 		alias, ytg.Cfg.Default)
 	return lchDic.Contains(ytg.Cfg.Default), lchTr.Contains(ytg.Cfg.Default)
 }
 
 // getSourceLang returns source language from a string of translation direction.
-func (ytg *YtapiGo) getSourceLang(direction string) (string, error) {
+func (ytg *Ytapi) getSourceLang(direction string) (string, error) {
 	langs := strings.SplitN(direction, "-", 2)
 	if (len(langs) > 0) && (len(langs[0]) > 0) {
 		return langs[0], nil
@@ -594,9 +353,9 @@ func (ytg *YtapiGo) getSourceLang(direction string) (string, error) {
 }
 
 // Spelling checks a spelling of income text message.
-// It returns JSONSpelResps as Translater interface.
-func (ytg *YtapiGo) Spelling(lang, txt string) (Translater, error) {
-	result := &JSONSpelResps{}
+// It returns SpellerResponse as Translator interface.
+func (ytg *Ytapi) Spelling(lang, txt string) (Translator, error) {
+	result := &SpellerResponse{}
 	params := url.Values{
 		"lang":    {lang},
 		"text":    {txt},
@@ -615,21 +374,21 @@ func (ytg *YtapiGo) Spelling(lang, txt string) (Translater, error) {
 
 // Translation translates the text message using full machine translation
 // or a search of a dictionary article by a word.
-func (ytg *YtapiGo) Translation(lang, txt string, tr bool) (Translater, error) {
+func (ytg *Ytapi) Translation(lang, txt string, tr bool) (Translator, error) {
 	var (
-		result Translater
+		result Translator
 		trurl  string
 		params url.Values
 	)
 	if wordCounter := len(strings.Split(txt, " ")); tr || (wordCounter > 1) {
-		result = &JSONTrResp{}
+		result = &TranslateResponse{}
 		trurl, params = ytJSONUrls[1], url.Values{
 			"lang":   {lang},
 			"text":   {txt},
 			"key":    {ytg.Cfg.APItr},
 			"format": {"plain"}}
 	} else {
-		result = &JSONTrDict{}
+		result = &DictionaryResponse{}
 		trurl, params = ytJSONUrls[2], url.Values{
 			"lang": {lang},
 			"text": {txt},
@@ -646,28 +405,27 @@ func (ytg *YtapiGo) Translation(lang, txt string, tr bool) (Translater, error) {
 	return result, nil
 }
 
-// GetTranslations is a main YtapiGo method to get spelling and translation results.
-// TODO: refactoring is needed
-func (ytg *YtapiGo) GetTranslations(params []string) (string, string, error) {
+// GetTranslations is a main Ytapi method to get spelling and translation results.
+func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 	var (
-		wg                    sync.WaitGroup
-		alias, ddirOk, tdirOk bool
-		langs, txt, source    string
-		spellResult, trResult Translater
-		spellErr, trErr       error
+		wg                     sync.WaitGroup
+		alias, ddirOk, tdirOk  bool
+		languages, txt, source string
+		spellResult, trResult  Translator
+		spellErr, trErr        error
 	)
 	switch l := len(params); {
 	case l < 1:
 		return "", "", errors.New("too few parameters")
 	case l == 1:
-		langs = ytg.Cfg.Default
-		ddirOk, tdirOk = ytg.direction(langs)
+		languages = ytg.Cfg.Default
+		ddirOk, tdirOk = ytg.direction(languages)
 		if !ddirOk {
 			return "", "", errors.New("cannot verify 'Default' translation direction")
 		}
 		alias, txt = false, params[0]
 	default:
-		ddirOk, tdirOk = ytg.aliasDirection(params[0], &langs, &alias)
+		ddirOk, tdirOk = ytg.aliasDirection(params[0], &languages, &alias)
 		if (!ddirOk) && (!tdirOk) {
 			return "", "", errors.New("cannot verify translation direction")
 		}
@@ -680,26 +438,26 @@ func (ytg *YtapiGo) GetTranslations(params []string) (string, string, error) {
 			txt = strings.Join(params, " ")
 		}
 	}
-	ytg.logDebug.Printf("direction=%v, alias=%v (%v, %v)", langs, alias, ddirOk, tdirOk)
-	if source, spellErr = ytg.getSourceLang(langs); spellErr == nil {
+	loggerDebug.Printf("direction=%v, alias=%v (%v, %v)", languages, alias, ddirOk, tdirOk)
+	if source, spellErr = ytg.getSourceLang(languages); spellErr == nil {
 		switch source {
 		// only 3 languages are supported for spelling
 		case "ru", "en", "uk":
 			wg.Add(1)
-			go func(i *Translater, e *error, l string, t string) {
+			go func(i *Translator, e *error, l string, t string) {
 				defer wg.Done()
 				*i, *e = ytg.Spelling(l, t)
 			}(&spellResult, &spellErr, source, txt)
 		default:
-			spellResult = &JSONSpelResps{}
-			ytg.logDebug.Printf("spelling is skipped [%v]\n", source)
+			spellResult = &SpellerResponse{}
+			loggerDebug.Printf("spelling is skipped [%v]\n", source)
 		}
 	}
 	wg.Add(1)
-	go func(i *Translater, e *error, l string, t string, tr bool) {
+	go func(i *Translator, e *error, l string, t string, tr bool) {
 		defer wg.Done()
 		*i, *e = ytg.Translation(l, t, tr)
-	}(&trResult, &trErr, langs, txt, false)
+	}(&trResult, &trErr, languages, txt, false)
 	wg.Wait()
 	if spellErr != nil {
 		return "", "", spellErr
@@ -714,7 +472,7 @@ func (ytg *YtapiGo) GetTranslations(params []string) (string, string, error) {
 }
 
 // Duration prints a time duration by debug logger.
-func (ytg *YtapiGo) Duration(t time.Time) {
+func (ytg *Ytapi) Duration(t time.Time) {
 	diff := time.Now().Sub(t)
-	ytg.logDebug.Printf("duration=%s\n", diff)
+	loggerDebug.Printf("duration=%s\n", diff)
 }
