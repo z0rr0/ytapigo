@@ -1,6 +1,11 @@
 {
   "services": {
-    "translation": {"folder":  "folder_id", "token":  "oauth token"},
+    "translation": {
+      "folder": "folder_id",
+      "key_id": "key id",
+      "service_account_id": "service account id",
+      "key_file": "rsa private file"
+    },
     "dictionary": "token"
   },
   "languages": {

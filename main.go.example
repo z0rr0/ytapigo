@@ -36,7 +36,7 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-	langs := flag.Bool("langs", false, "show available languages")
+	languages := flag.Bool("langs", false, "show available languages")
 	debug := flag.Bool("debug", false, "debug mode")
 	version := flag.Bool("version", false, "print version")
 	nocache := flag.Bool("nocache", false, "reset cache")
@@ -54,7 +54,7 @@ func main() {
 	defer func() {
 		ytg.Duration(t)
 	}()
-	if *langs {
+	if *languages {
 		if langs, err := ytg.GetLangs(); err != nil {
 			panic(err)
 		} else {

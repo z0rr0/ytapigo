@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/z0rr0/ytapigo/auth"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -71,15 +72,9 @@ type LangChecker interface {
 	Description() string
 }
 
-// ConfigCloudItem is API auth info struct.
-type ConfigCloudItem struct {
-	Folder string `json:"folder"`
-	Token  string `json:"token"`
-}
-
 // Services is a struct of used services.
 type Services struct {
-	Translation ConfigCloudItem `json:"translation"`
+	Translation auth.Account `json:"translation"`
 	Dictionary  string          `json:"dictionary"`
 }
 
@@ -151,10 +146,19 @@ func New(filename string, nocache, debug bool) (*Ytapi, error) {
 		"dict": filepath.Join(tmpDir, cacheDictLanguages),
 		"auth": filepath.Join(tmpDir, cacheAuth),
 	}
+	if nocache {
+		caches["auth"] = ""
+	}
+	client := &http.Client{Transport: tr}
+	timeout := time.Duration(cfg.Timeout) * time.Second
+	err = cfg.S.Translation.SetIAMToken(caches["auth"], client, userAgent, timeout, loggerDebug, loggerError)
+	if err != nil {
+		return nil, err
+	}
 	ytg := &Ytapi{
 		Cfg:     cfg,
-		timeout: time.Duration(cfg.Timeout) * time.Second,
-		client:  &http.Client{Transport: tr},
+		timeout: timeout,
+		client:  client,
 		caches:  caches,
 	}
 	if nocache {
