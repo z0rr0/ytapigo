@@ -127,6 +127,16 @@ func readConfig(file string) (*Config, error) {
 	return cfg, nil
 }
 
+// cleanCache removes cache files.
+func cleanCache(caches map[string]string) {
+	for _, f := range caches {
+		// ignore errors without debug
+		if err := os.Remove(f); err != nil {
+			loggerDebug.Println(err)
+		}
+	}
+}
+
 // New creates new Ytapi structure
 func New(filename string, nocache, debug bool) (*Ytapi, error) {
 	cfg, err := readConfig(filename)
@@ -147,7 +157,8 @@ func New(filename string, nocache, debug bool) (*Ytapi, error) {
 		"auth": filepath.Join(tmpDir, cacheAuth),
 	}
 	if nocache {
-		caches["auth"] = ""
+		cleanCache(caches)
+		caches["auth"] = ""  // don't save token during SetIAMToken
 	}
 	client := &http.Client{Transport: tr}
 	timeout := time.Duration(cfg.Timeout) * time.Second
@@ -160,9 +171,6 @@ func New(filename string, nocache, debug bool) (*Ytapi, error) {
 		timeout: timeout,
 		client:  client,
 		caches:  caches,
-	}
-	if nocache {
-		ytg.cleanCache()
 	}
 	return ytg, nil
 }
@@ -234,15 +242,6 @@ func (ytg *Ytapi) setCacheLangList(dict bool, lc LangChecker) error {
 	return ioutil.WriteFile(tmpfile, body, 0640)
 }
 
-// cleanCache removes cache files.
-func (ytg *Ytapi) cleanCache() {
-	for _, f := range ytg.caches {
-		// ignore errors without debug
-		if err := os.Remove(f); err != nil {
-			loggerDebug.Println(err)
-		}
-	}
-}
 
 // getLangsList gets LangChecker interface as a result to check available languages.
 // It uses dictservice request if dict is true.
