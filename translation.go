@@ -43,7 +43,7 @@ type TranslateLanguages struct {
 // String is an implementation of String() method for TranslateLanguages
 // pointer (LangChecker interface).
 func (ltr *TranslateLanguages) String() string {
-	return fmt.Sprintf("%v", strings.Join(ltr.Dirs, ", "))
+	return fmt.Sprintf("Translation languages:\n%v\n%v", strings.Join(ltr.Dirs, ", "), ltr.Description())
 }
 
 // Contains is an implementation of Contains() method for TranslateLanguages

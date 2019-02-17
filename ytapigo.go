@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/z0rr0/ytapigo/auth"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -25,6 +24,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/z0rr0/ytapigo/cloud"
 )
 
 const (
@@ -34,11 +35,11 @@ const (
 
 	cacheTrLanguages        = "ytapigo_langs.json"
 	cacheDictLanguages      = "ytapigo_dict_langs.json"
-	cacheAuth               = "ytapigo.auth"
+	cacheAuth               = "ytapigo.cloud"
 	userAgent               = "Ytapi/2.0"
 	defaultTimeout     uint = 10
 
-	// expirationAuth is auth "iamToken" expiration period.
+	// expirationAuth is cloud "iamToken" expiration period.
 	expirationAuth = time.Duration(12 * time.Hour)
 )
 
@@ -50,7 +51,7 @@ var (
 		"dictionary":       "https://dictionary.yandex.net/api/v1/dicservice.json/lookup",
 		"translate_langs":  "https://translate.api.cloud.yandex.net/translate/v2/languages",
 		"dictionary_langs": "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs",
-		"translate_token":  "https://iam.api.cloud.yandex.net/iam/v1/tokens",
+		//"translate_token":  "https://iam.api.cloud.yandex.net/iam/v1/tokens",
 	}
 	// LangDirection is a regexp pattern to detect language direction.
 	LangDirection = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
@@ -74,8 +75,8 @@ type LangChecker interface {
 
 // Services is a struct of used services.
 type Services struct {
-	Translation auth.Account `json:"translation"`
-	Dictionary  string          `json:"dictionary"`
+	Translation cloud.Account `json:"translation"`
+	Dictionary  string        `json:"dictionary"`
 }
 
 // Languages is languages configuration.
@@ -151,18 +152,17 @@ func New(filename string, nocache, debug bool) (*Ytapi, error) {
 	}
 	tmpDir := os.TempDir()
 	// alias: file path
-	caches := map[string]string{
-		"tr":   filepath.Join(tmpDir, cacheTrLanguages),
-		"dict": filepath.Join(tmpDir, cacheDictLanguages),
-		"auth": filepath.Join(tmpDir, cacheAuth),
-	}
+	caches := make(map[string]string, 3)
 	if nocache {
 		cleanCache(caches)
-		caches["auth"] = ""  // don't save token during SetIAMToken
+	} else {
+		caches["translate_langs"] = filepath.Join(tmpDir, cacheTrLanguages)
+		caches["dictionary_langs"] = filepath.Join(tmpDir, cacheDictLanguages)
+		caches["cloud"] = filepath.Join(tmpDir, cacheAuth)
 	}
 	client := &http.Client{Transport: tr}
 	timeout := time.Duration(cfg.Timeout) * time.Second
-	err = cfg.S.Translation.SetIAMToken(caches["auth"], client, userAgent, timeout, loggerDebug, loggerError)
+	err = cfg.S.Translation.SetIAMToken(caches["cloud"], client, userAgent, timeout, loggerDebug, loggerError)
 	if err != nil {
 		return nil, err
 	}
@@ -175,9 +175,10 @@ func New(filename string, nocache, debug bool) (*Ytapi, error) {
 	return ytg, nil
 }
 
-// Request is a common method to send POST request and get []byte response.
-func (ytg *Ytapi) request(url string, params *url.Values) ([]byte, error) {
+// Request is a common method to send POST Request and get []byte response.
+func (ytg *Ytapi) Request(url string, params *url.Values) ([]byte, error) {
 	var resp *http.Response
+	start := time.Now()
 	req, err := http.NewRequest("POST", url, strings.NewReader(params.Encode()))
 	if err != nil {
 		return nil, err
@@ -204,8 +205,15 @@ func (ytg *Ytapi) request(url string, params *url.Values) ([]byte, error) {
 			return nil, err
 		}
 	}
-	defer resp.Body.Close()
-	loggerDebug.Printf("done %v [%v]: %v\n", resp.Request.Method, resp.StatusCode, resp.Request.URL)
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			loggerError.Printf("close body: %v\n", err)
+		}
+	}()
+	loggerDebug.Printf(
+		"done %v-%v [%v]: %v\n",
+		resp.Request.Method, resp.StatusCode, time.Now().Sub(start), resp.Request.URL,
+	)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("wrong response code=%v", resp.StatusCode)
 	}
@@ -216,91 +224,118 @@ func (ytg *Ytapi) request(url string, params *url.Values) ([]byte, error) {
 	return body, nil
 }
 
-// getCacheLangList tries to find languages lists from file cache.
-func (ytg *Ytapi) getCacheLangList(dict bool) ([]byte, error) {
-	var tmpFile string
-	if dict {
-		tmpFile = filepath.Join(os.TempDir(), cacheDictLanguages)
-	} else {
-		tmpFile = filepath.Join(os.TempDir(), cacheTrLanguages)
+// getLanguageList requests dictionary language list.
+func (ytg *Ytapi) getDictLanguageList(lc LangChecker, cache, uri string, params *url.Values) error {
+	var (
+		body []byte
+		err  error
+	)
+	if cache != "" {
+		// try read cache file
+		body, err = ioutil.ReadFile(cache)
+		if err == nil {
+			err = json.Unmarshal(body, lc)
+			if err == nil {
+				return nil
+			}
+			loggerError.Printf("failed json unmarshal [%v]: %v", cache, err)
+			// cache error, do Request
+		}
 	}
-	return ioutil.ReadFile(tmpFile)
-}
-
-// setCacheLangList saves languages stucture lc to temporary file.
-func (ytg *Ytapi) setCacheLangList(dict bool, lc LangChecker) error {
-	var tmpfile string
-	if dict {
-		tmpfile = filepath.Join(os.TempDir(), cacheDictLanguages)
-	} else {
-		tmpfile = filepath.Join(os.TempDir(), cacheTrLanguages)
-	}
-	body, err := json.Marshal(lc)
+	body, err = ytg.Request(uri, params)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(tmpfile, body, 0640)
+	err = json.Unmarshal(body, lc)
+	if err != nil {
+		return err
+	}
+	if cache != "" {
+		go func() {
+			if err := ioutil.WriteFile(cache, body, 0600); err != nil {
+				loggerError.Printf("save cache: %v", err)
+			}
+		}()
+	}
+	return nil
 }
 
-
-// getLangsList gets LangChecker interface as a result to check available languages.
-// It uses dictservice request if dict is true.
-func (ytg *Ytapi) getLangsList(dict bool, c chan LangChecker) {
+// getLanguageList requests translation language list.
+func (ytg *Ytapi) getTrLanguageList(lc LangChecker, cache, uri string) error {
 	var (
-		result LangChecker
-		params url.Values
-		urlstr string
-		body   []byte
-		err    error
+		body []byte
+		err  error
 	)
-	if dict {
-		result = &DictionaryLanguages{}
-		urlstr, params = ytJSONUrls[4], url.Values{"key": {ytg.Cfg.APIdict}}
-	} else {
-		result = &TranslateLanguages{}
-		urlstr, params = ytJSONUrls[3], url.Values{"key": {ytg.Cfg.APItr}, "ui": {"en"}}
-	}
-	if ytg.nocache {
-		body, err = ytg.request(urlstr, &params)
-	} else {
-		body, err = ytg.getCacheLangList(dict)
-		if err != nil {
-			loggerDebug.Println("language chache file is not found")
-			body, err = ytg.request(urlstr, &params)
+	if cache != "" {
+		// try read cache file
+		body, err = ioutil.ReadFile(cache)
+		if err == nil {
+			err = json.Unmarshal(body, lc)
+			if err == nil {
+				return nil
+			}
+			loggerError.Printf("failed json unmarshal [%v]: %v", cache, err)
+			// cache error, do Request
 		}
 	}
+	requestData := strings.NewReader(fmt.Sprintf(`{"folder_id":"%s"}`, ytg.Cfg.S.Translation.FolderID))
+	body, err = cloud.Request(ytg.client, requestData, ServiceURLs["translate_langs"],
+		ytg.Cfg.S.Translation.IAMToken, userAgent, ytg.timeout, loggerDebug, loggerError)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(body, lc)
+	if err != nil {
+		return err
+	}
+	if cache != "" {
+		go func() {
+			if err := ioutil.WriteFile(cache, body, 0600); err != nil {
+				loggerError.Printf("save cache: %v", err)
+			}
+		}()
+	}
+	return nil
+}
+
+// dictionaryLanguageList requests dictionary languages and sends it to channel c.
+func (ytg *Ytapi) dictionaryLanguageList(c chan LangChecker) {
+	lc := &DictionaryLanguages{}
+	params := &url.Values{"key": {ytg.Cfg.S.Dictionary}}
+	err := ytg.getDictLanguageList(lc, ytg.caches["dict"], ServiceURLs["dictionary_langs"], params)
 	if err != nil {
 		loggerError.Println(err)
-		c <- result
-		return
 	}
-	if err := json.Unmarshal(body, result); err != nil {
-		loggerError.Println(err)
-		c <- result
-		return
-	}
-	// result is immutable
-	if !ytg.nocache {
-		if err := ytg.setCacheLangList(dict, result); err != nil {
-			loggerError.Println(err)
-		}
-	}
-	c <- result
+	c <- lc
 }
 
-// GetLangs returns a list of available languages for current configuration.
-func (ytg *Ytapi) GetLangs() (string, error) {
-	langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
-	go ytg.getLangsList(true, langsDic)
-	go ytg.getLangsList(false, langsTr)
-	lgch, lgct := <-langsDic, <-langsTr
+// translationLanguageList requests translation languages and sends it to channel c.
+func (ytg *Ytapi) translationLanguageList(c chan LangChecker) {
+	lc := &TranslateLanguages{}
+	err := ytg.getTrLanguageList(lc, ytg.caches["dict"], ServiceURLs["dictionary_langs"])
+	if err != nil {
+		loggerError.Println(err)
+	}
+	c <- lc
+}
 
-	trStr, dictStr := lgct.String(), lgch.String()
-	if (trStr == "") && (dictStr == "") {
+// GetLanguages returns a list of available languages for current configuration.
+func (ytg *Ytapi) GetLanguages() (string, error) {
+	c := make(chan LangChecker)
+	go ytg.translationLanguageList(c)
+	go ytg.dictionaryLanguageList(c)
+	result := ""
+	for i := 0; i < 2; i++ {
+		v := <-c
+		if v != nil {
+			result += v.String() + "\n"
+		}
+	}
+	close(c)
+	if result == "" {
 		return "", errors.New("cannot read languages descriptions")
 	}
-	return fmt.Sprintf("Dictionary languages:\n%v\nTranslation languages:\n%v\n%v",
-		dictStr, trStr, lgct.Description()), nil
+	return result, nil
 }
 
 // direction verifies translation direction,
@@ -366,7 +401,7 @@ func (ytg *Ytapi) Spelling(lang, txt string) (Translator, error) {
 		"text":    {txt},
 		"format":  {"plain"},
 		"options": {"518"}}
-	body, err := ytg.request(ytJSONUrls[0], &params)
+	body, err := ytg.Request(ServiceURLs["spelling"], &params)
 	if err != nil {
 		return result, err
 	}
@@ -399,7 +434,7 @@ func (ytg *Ytapi) Translation(lang, txt string, tr bool) (Translator, error) {
 			"text": {txt},
 			"key":  {ytg.Cfg.APIdict}}
 	}
-	body, err := ytg.request(trurl, &params)
+	body, err := ytg.Request(trurl, &params)
 	if err != nil {
 		return result, err
 	}
