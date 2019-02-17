@@ -71,6 +71,7 @@ type LangChecker interface {
 	String() string
 	Contains(string) bool
 	Description() string
+	Sort()
 }
 
 // Services is a struct of used services.
@@ -225,18 +226,19 @@ func (ytg *Ytapi) Request(url string, params *url.Values) ([]byte, error) {
 }
 
 // getLanguageList requests dictionary language list.
-func (ytg *Ytapi) getDictLanguageList(lc LangChecker, cache, uri string, params *url.Values) error {
+func (ytg *Ytapi) getDictLanguageList(cache, uri string, params *url.Values) (LangChecker, error) {
 	var (
 		body []byte
 		err  error
 	)
+	lc := &DictionaryLanguages{}
 	if cache != "" {
 		// try read cache file
 		body, err = ioutil.ReadFile(cache)
 		if err == nil {
 			err = json.Unmarshal(body, lc)
 			if err == nil {
-				return nil
+				return lc, nil
 			}
 			loggerError.Printf("failed json unmarshal [%v]: %v", cache, err)
 			// cache error, do Request
@@ -244,20 +246,26 @@ func (ytg *Ytapi) getDictLanguageList(lc LangChecker, cache, uri string, params 
 	}
 	body, err = ytg.Request(uri, params)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = json.Unmarshal(body, lc)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	lc.Sort()
 	if cache != "" {
 		go func() {
+			// cache sorted struct
+			body, err := json.Marshal(lc)
+			if err !=  nil {
+				loggerError.Printf("prepare cache: %v", err)
+			}
 			if err := ioutil.WriteFile(cache, body, 0600); err != nil {
 				loggerError.Printf("save cache: %v", err)
 			}
 		}()
 	}
-	return nil
+	return lc, nil
 }
 
 // getLanguageList requests translation language list.

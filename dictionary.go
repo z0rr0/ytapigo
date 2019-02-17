@@ -106,14 +106,20 @@ func (lch *DictionaryLanguages) String() string {
 	return fmt.Sprintf("%v", strings.Join(*lch, ", "))
 }
 
+func (lch DictionaryLanguages) Len() int           { return len(lch) }
+func (lch DictionaryLanguages) Swap(i, j int)      { lch[i], lch[j] = lch[j], lch[i] }
+func (lch DictionaryLanguages) Less(i, j int) bool { return lch[i] < lch[j] }
+
+// Sort sorts
+func (lch *DictionaryLanguages) Sort() {
+	sort.Sort(lch)
+}
+
 // Contains is an implementation of Contains() method for DictionaryLanguages pointer (LangChecker interface).
 func (lch *DictionaryLanguages) Contains(s string) bool {
 	var data []string = *lch
 	if len(data) == 0 {
 		return false
-	}
-	if !sort.StringsAreSorted(data) {
-		sort.Strings(data)
 	}
 	if i := sort.SearchStrings(data, s); i < len(data) && data[i] == s {
 		return true
