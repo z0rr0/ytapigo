@@ -103,7 +103,7 @@ func (d *DictionaryResponse) String() string {
 
 // String is an implementation of String() method for DictionaryLanguages pointer (LangChecker interface).
 func (lch *DictionaryLanguages) String() string {
-	return fmt.Sprintf("Dictionary languages:\n%v\n", strings.Join(*lch, ", "))
+	return fmt.Sprintf("Dictionary languages:\n%v", strings.Join(*lch, ", "))
 }
 
 func (lch DictionaryLanguages) Len() int           { return len(lch) }

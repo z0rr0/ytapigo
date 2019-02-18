@@ -91,7 +91,6 @@ func (a *Account) SetIAMToken(cacheFile string, client *http.Client, userAgent s
 		}
 		// no cache
 	}
-
 	jot, err := a.signedToken()
 	if err != nil {
 		return err

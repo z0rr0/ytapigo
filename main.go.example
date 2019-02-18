@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -12,10 +13,7 @@ import (
 
 const (
 	// Name is a programm name
-	Name = "YtapiGo"
-	// CfgFile is a config file
-	// if not set, then HOME/.ytapigo.json is used
-	CfgFile = ""
+	Name = "Ytapi"
 )
 
 var (
@@ -36,17 +34,22 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-	languages := flag.Bool("langs", false, "show available languages")
+	languages := flag.Bool("languages", false, "show available languages")
 	debug := flag.Bool("debug", false, "debug mode")
 	version := flag.Bool("version", false, "print version")
 	nocache := flag.Bool("nocache", false, "reset cache")
+	cfg := flag.String("cfg", "", "configuration directory, default $HOME/.ytapigo")
 	flag.Parse()
 	if *version {
 		fmt.Printf("%v: %v %v %v %v\n", Name, Version, Revision, GoVersion, Date)
 		flag.PrintDefaults()
 		return
 	}
-	ytg, err := ytapigo.New(CfgFile, *nocache, *debug)
+	configDir := *cfg
+	if configDir == "" {
+		configDir = filepath.Join(os.Getenv("HOME"), ".ytapigo")
+	}
+	ytg, err := ytapigo.New(configDir, *nocache, *debug)
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +58,7 @@ func main() {
 		ytg.Duration(t)
 	}()
 	if *languages {
-		if langs, err := ytg.GetLangs(); err != nil {
+		if langs, err := ytg.GetLanguages(); err != nil {
 			panic(err)
 		} else {
 			fmt.Println(langs)

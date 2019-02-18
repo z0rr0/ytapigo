@@ -47,7 +47,6 @@ var (
 		"dictionary":       "https://dictionary.yandex.net/api/v1/dicservice.json/lookup",
 		"translate_langs":  "https://translate.api.cloud.yandex.net/translate/v2/languages",
 		"dictionary_langs": "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs",
-		//"translate_token":  "https://iam.api.cloud.yandex.net/iam/v1/tokens",
 	}
 	// LangDirection is a regexp pattern to detect language direction.
 	LangDirection = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
@@ -100,9 +99,6 @@ type Ytapi struct {
 
 // readConfig reads Ytapi configuration.
 func readConfig(file string) (*Config, error) {
-	if file == "" {
-		file = filepath.Join(os.Getenv("HOME"), ConfName)
-	}
 	_, err := os.Stat(file)
 	if err != nil {
 		return nil, err
@@ -343,80 +339,80 @@ func (ytg *Ytapi) GetLanguages() (string, error) {
 	return result, nil
 }
 
-//// direction verifies translation direction,
-//// checks its support by dictionary and translate API.
-//func (ytg *Ytapi) direction(direction string) (bool, bool) {
-//	if direction == "" {
-//		return false, false
-//	}
-//	langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
-//	go ytg.getLangsList(true, langsDic)
-//	go ytg.getLangsList(false, langsTr)
-//	lchDic, lchTr := <-langsDic, <-langsTr
-//	return lchDic.Contains(direction), lchTr.Contains(direction)
-//}
-//
-//// aliasDirection verifies translation direction,
-//// checks its support by dictionary and translate API, but additionally considers users' aliases.
-//func (ytg *Ytapi) aliasDirection(direction string, langs *string, isAlias *bool) (bool, bool) {
-//	*langs, *isAlias = ytg.Cfg.Default, false
-//	if direction == "" {
-//		return false, false
-//	}
-//	alias := direction
-//	for k, v := range ytg.Cfg.Aliases {
-//		if i := sort.SearchStrings(v, alias); i < len(v) && v[i] == alias {
-//			alias = k
-//			break
-//		}
-//	}
-//	langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
-//	go ytg.getLangsList(true, langsDic)
-//	go ytg.getLangsList(false, langsTr)
-//	lchDic, lchTr := <-langsDic, <-langsTr
-//
-//	if LangDirection.MatchString(alias) {
-//		loggerDebug.Printf("maybe it is a direction \"%v\"", alias)
-//		lchdOk, lchtrOk := lchDic.Contains(alias), lchTr.Contains(alias)
-//		if lchdOk || lchtrOk {
-//			*langs, *isAlias = alias, true
-//			return lchdOk, lchtrOk
-//		}
-//	}
-//	loggerDebug.Printf("not found lang for alias \"%v\", default direction \"%v\" will be used.",
-//		alias, ytg.Cfg.Default)
-//	return lchDic.Contains(ytg.Cfg.Default), lchTr.Contains(ytg.Cfg.Default)
-//}
-//
-//// getSourceLang returns source language from a string of translation direction.
-//func (ytg *Ytapi) getSourceLang(direction string) (string, error) {
-//	langs := strings.SplitN(direction, "-", 2)
-//	if (len(langs) > 0) && (len(langs[0]) > 0) {
-//		return langs[0], nil
-//	}
-//	return "", errors.New("cannot detect translation direction")
-//}
-//
-//// Spelling checks a spelling of income text message.
-//// It returns SpellerResponse as Translator interface.
-//func (ytg *Ytapi) Spelling(lang, txt string) (Translator, error) {
-//	result := &SpellerResponse{}
-//	params := url.Values{
-//		"lang":    {lang},
-//		"text":    {txt},
-//		"format":  {"plain"},
-//		"options": {"518"}}
-//	body, err := ytg.Request(ServiceURLs["spelling"], &params)
-//	if err != nil {
-//		return result, err
-//	}
-//	err = json.Unmarshal(body, result)
-//	if err != nil {
-//		return result, err
-//	}
-//	return result, nil
-//}
-//
+// direction verifies translation direction,
+// checks its support by dictionary and translate API.
+func (ytg *Ytapi) direction(direction string) (bool, bool) {
+	if direction == "" {
+		return false, false
+	}
+	langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
+	go ytg.getLangsList(true, langsDic)
+	go ytg.getLangsList(false, langsTr)
+	lchDic, lchTr := <-langsDic, <-langsTr
+	return lchDic.Contains(direction), lchTr.Contains(direction)
+}
+
+// aliasDirection verifies translation direction,
+// checks its support by dictionary and translate API, but additionally considers users' aliases.
+func (ytg *Ytapi) aliasDirection(direction string, langs *string, isAlias *bool) (bool, bool) {
+	*langs, *isAlias = ytg.Cfg.Default, false
+	if direction == "" {
+		return false, false
+	}
+	alias := direction
+	for k, v := range ytg.Cfg.Aliases {
+		if i := sort.SearchStrings(v, alias); i < len(v) && v[i] == alias {
+			alias = k
+			break
+		}
+	}
+	langsDic, langsTr := make(chan LangChecker), make(chan LangChecker)
+	go ytg.getLangsList(true, langsDic)
+	go ytg.getLangsList(false, langsTr)
+	lchDic, lchTr := <-langsDic, <-langsTr
+
+	if LangDirection.MatchString(alias) {
+		loggerDebug.Printf("maybe it is a direction \"%v\"", alias)
+		lchdOk, lchtrOk := lchDic.Contains(alias), lchTr.Contains(alias)
+		if lchdOk || lchtrOk {
+			*langs, *isAlias = alias, true
+			return lchdOk, lchtrOk
+		}
+	}
+	loggerDebug.Printf("not found lang for alias \"%v\", default direction \"%v\" will be used.",
+		alias, ytg.Cfg.Default)
+	return lchDic.Contains(ytg.Cfg.Default), lchTr.Contains(ytg.Cfg.Default)
+}
+
+// getSourceLang returns source language from a string of translation direction.
+func (ytg *Ytapi) getSourceLang(direction string) (string, error) {
+	langs := strings.SplitN(direction, "-", 2)
+	if (len(langs) > 0) && (len(langs[0]) > 0) {
+		return langs[0], nil
+	}
+	return "", errors.New("cannot detect translation direction")
+}
+
+// Spelling checks a spelling of income text message.
+// It returns SpellerResponse as Translator interface.
+func (ytg *Ytapi) Spelling(lang, txt string) (Translator, error) {
+	result := &SpellerResponse{}
+	params := url.Values{
+		"lang":    {lang},
+		"text":    {txt},
+		"format":  {"plain"},
+		"options": {"518"}}
+	body, err := ytg.Request(ServiceURLs["spelling"], &params)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 //// Translation translates the text message using full machine translation
 //// or a search of a dictionary article by a word.
 //func (ytg *Ytapi) Translation(lang, txt string, tr bool) (Translator, error) {
