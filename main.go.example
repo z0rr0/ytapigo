@@ -38,14 +38,14 @@ func main() {
 	debug := flag.Bool("debug", false, "debug mode")
 	version := flag.Bool("version", false, "print version")
 	nocache := flag.Bool("nocache", false, "reset cache")
-	cfg := flag.String("cfg", "", "configuration directory, default $HOME/.ytapigo")
+	config := flag.String("config", "", "configuration directory, default $HOME/.ytapigo")
 	flag.Parse()
 	if *version {
 		fmt.Printf("%v: %v %v %v %v\n", Name, Version, Revision, GoVersion, Date)
 		flag.PrintDefaults()
 		return
 	}
-	configDir := *cfg
+	configDir := *config
 	if configDir == "" {
 		configDir = filepath.Join(os.Getenv("HOME"), ".ytapigo")
 	}
