@@ -167,7 +167,6 @@ func Request(client *http.Client, data io.Reader, uri, bearer, userAgent string,
 		resp, err = client.Do(req)
 		ec <- err
 		close(ec)
-		li.Printf("request done [%v]: %v\n", time.Now().Sub(start), uri)
 	}()
 	select {
 	case <-ctx.Done():
@@ -183,12 +182,16 @@ func Request(client *http.Client, data io.Reader, uri, bearer, userAgent string,
 			le.Printf("failed body close: %v\n", err)
 		}
 	}()
+	li.Printf(
+		"done %v-%v [%v]: %v\n",
+		resp.Request.Method, resp.StatusCode, time.Now().Sub(start), resp.Request.URL,
+	)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("get token status %v, can't read content: %v", resp.Status, err)
+		return nil, fmt.Errorf("request status %v, can't read content: %v", resp.Status, err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("get token status %s: %s", resp.Status, body)
+		return nil, fmt.Errorf("request status %s: %s", resp.Status, body)
 	}
 	return body, nil
 }

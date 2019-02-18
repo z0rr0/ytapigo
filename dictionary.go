@@ -98,7 +98,7 @@ func (d *DictionaryResponse) String() string {
 		}
 		result[i] = fmt.Sprintf("%v\n%v", txtResult, strings.Join(arResult, "\n"))
 	}
-	return fmt.Sprintf("Dictionary languages:\n%v", strings.Join(result, "\n"))
+	return strings.Join(result, "\n")
 }
 
 // String is an implementation of String() method for DictionaryLanguages pointer (LangChecker interface).

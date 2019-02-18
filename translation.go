@@ -13,19 +13,26 @@ import (
 	"strings"
 )
 
+type TranslateResponseItem struct {
+	Text                 string `json:"text"`
+	DetectedLanguageCode string `json:"detectedLanguageCode"`
+}
+
 // TranslateResponse is a type of translation response.
 type TranslateResponse struct {
-	Code float64  `json:"code"`
-	Lang string   `json:"lang"`
-	Text []string `json:"text"`
+	Translations []TranslateResponseItem `json:"translations"`
 }
 
 // String is an implementation of String() method for TranslateResponse pointer.
 func (t *TranslateResponse) String() string {
-	if len(t.Text) == 0 {
+	if len(t.Translations) == 0 {
 		return ""
 	}
-	return t.Text[0]
+	texts := make([]string, len(t.Translations))
+	for i := range t.Translations {
+		texts[i] = t.Translations[i].Text
+	}
+	return strings.Join(texts, "\n")
 }
 
 // Exists is an implementation of Exists() method for TranslateResponse pointer.
@@ -33,7 +40,7 @@ func (t *TranslateResponse) Exists() bool {
 	return t.String() != ""
 }
 
-// TranslateLanguage is laguage info item.
+// TranslateLanguage is language info item.
 type TranslateLanguage struct {
 	Code string `json:"code"`
 	Name string `json:"name"`
