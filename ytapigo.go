@@ -100,35 +100,96 @@ type Ytapi struct {
 
 // Translation is common item for translation.
 type Translation struct {
-	Direction string
-	Text string
+	Direction    string
+	Text         string
 	IsDictionary bool
+	UseAlias     bool
 }
 
-// checkDirection verifies translation direction.
-// It returns two boolean values for dictionary and translation directions.
-func (ytg *Ytapi) checkDirection(direction string) (bool, bool) {
-	var isDict, isTr bool
-	if !LangDirection.MatchString(direction) {
-		return false, false
-	}
-	items := strings.Split(direction, "-")
-
-	c := make(chan LangChecker)
-	go ytg.translationLanguageList(c)
-	go ytg.dictionaryLanguageList(c)
-	for i := 0; i < 2; i++ {
-		v := <-c
-		switch v.(type) {
-		case *DictionaryLanguages:
-			isDict = v.Contains(direction)
-		default:
-			// translation
-			isTr = v.Contains(items[0]) && v.Contains(items[1])
+func (t *Translation) getAlias(lc LangChecker, value string, ytg *Ytapi) string {
+	var direction string
+	for alias, values := range ytg.Cfg.L.Aliases {
+		if i := sort.SearchStrings(values, value); i < len(values) && values[i] == value {
+			direction = alias
+			break
 		}
 	}
-	close(c)
-	return isDict, isTr
+	if direction == "" {
+		return ""
+	}
+	if lc.Contains(direction) {
+		return direction
+	}
+	return ""
+}
+
+func (t *Translation) getLanguages() (string, string, error) {
+	languages := strings.SplitN(t.Direction, "-", 2)
+	if len(languages) < 2 {
+		return "", "", fmt.Errorf("cannot detect translation direction from: %v", t.Direction)
+	}
+	return languages[0], languages[1] , nil
+}
+
+func (t *Translation) multiParse(ytg *Ytapi, params []string) error {
+	// get some words, the 1st one can be a direction
+	n := len(params)
+	if n < 2 {
+		return errors.New("failed usage multiParse method")
+	}
+	c := make(chan LangChecker)
+	defer close(c)
+
+	if n == 2 {
+		// is it dictionary
+		languages := &DictionaryLanguages{}
+		err := ytg.getDictLanguageList(languages, ytg.caches["dictionary_langs"], ServiceURLs["dictionary_langs"])
+		if err != nil {
+			return err
+		}
+		direction := params[0]
+		if languages.Contains(direction) {
+			t.Direction = params[0]
+			t.Text = params[1]
+			t.IsDictionary = true
+			return nil
+		}
+		direction = t.getAlias(languages, direction, ytg)
+		if direction != "" {
+			t.Direction = direction
+			t.Text = params[1]
+			t.IsDictionary = true
+			t.UseAlias = true
+			return nil
+		}
+	}
+	languages := &TranslateLanguages{}
+	err := ytg.getTrLanguageList(languages, ytg.caches["translate_langs"], ServiceURLs["dictionary_langs"])
+	if err != nil {
+		return err
+	}
+	direction := params[0]
+	if languages.Contains(direction) {
+		t.Direction = direction
+		t.Text = strings.Join(params[1:], " ")
+		t.IsDictionary = false
+		return nil
+	}
+	direction = t.getAlias(languages, direction, ytg)
+	if direction != "" {
+		t.Direction = direction
+		t.Text = strings.Join(params[1:], " ")
+		t.IsDictionary = false
+		t.UseAlias = true
+		return nil
+	}
+	if languages.Contains(ytg.Cfg.L.Default) {
+		t.Direction = ytg.Cfg.L.Default
+		t.Text = strings.Join(params, " ")
+		t.IsDictionary = false
+		return nil
+	}
+	return fmt.Errorf("cannot verify 'Default' dictionary direction: %v", ytg.Cfg.L.Default)
 }
 
 func (t *Translation) parse(ytg *Ytapi, params []string) error {
@@ -136,44 +197,24 @@ func (t *Translation) parse(ytg *Ytapi, params []string) error {
 	case n < 1:
 		return errors.New("too few parameters")
 	case n == 1:
-		if ok, _ := ytg.checkDirection(ytg.Cfg.L.Default); !ok {
-			return fmt.Errorf("cannot verify 'Default' dictionary direction: %v", t.Direction)
+		languages := &DictionaryLanguages{}
+		err := ytg.getDictLanguageList(languages, ytg.caches["dictionary_langs"], ServiceURLs["dictionary_langs"])
+		if err != nil {
+			return err
+		}
+		if !languages.Contains(ytg.Cfg.L.Default) {
+			return fmt.Errorf("cannot verify 'Default' dictionary direction: %v", ytg.Cfg.L.Default)
 		}
 		t.Direction = ytg.Cfg.L.Default
 		t.Text = params[0]
 		t.IsDictionary = true
 	default:
-		// get some words, the 1st one can be a direction
-		direction := params[0]
-		if !LangDirection.MatchString(direction) {
-			direction = ytg.Cfg.L.Default
+		err := t.multiParse(ytg, params)
+		if err != nil {
+			return err
 		}
-		// direction
-		isDict, isTr := ytg.checkDirection(direction)
-
-
-
-		var dictLanguages *DictionaryLanguages
-		direction := ytg.Cfg.L.Default
-
-		c := make(chan LangChecker)
-		go ytg.translationLanguageList(c)
-		go ytg.dictionaryLanguageList(c)
-		result := ""
-		for i := 0; i < 2; i++ {
-			v := <-c
-			switch t := v.(type) {
-			case *DictionaryLanguages:
-				dictLanguages
-			}
-
-
-			if v != nil {
-				result += v.String() + "\n"
-			}
-		}
-		close(c)
 	}
+	return nil
 }
 
 // readConfig reads Ytapi configuration.
@@ -297,31 +338,31 @@ func (ytg *Ytapi) Request(url string, params *url.Values) ([]byte, error) {
 }
 
 // getLanguageList requests dictionary language list.
-func (ytg *Ytapi) getDictLanguageList(cache, uri string, params *url.Values) (LangChecker, error) {
+func (ytg *Ytapi) getDictLanguageList(lc LangChecker, cache, uri string) error {
 	var (
 		body []byte
 		err  error
 	)
-	lc := &DictionaryLanguages{}
 	if cache != "" {
 		// try read cache file
 		body, err = ioutil.ReadFile(cache)
 		if err == nil {
 			err = json.Unmarshal(body, lc)
 			if err == nil {
-				return lc, nil
+				return nil
 			}
 			loggerError.Printf("failed json unmarshal [%v]: %v", cache, err)
 			// cache error, do Request
 		}
 	}
+	params := &url.Values{"key": {ytg.Cfg.S.Dictionary}}
 	body, err = ytg.Request(uri, params)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = json.Unmarshal(body, lc)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	lc.Sort()
 	if cache != "" {
@@ -334,7 +375,7 @@ func (ytg *Ytapi) getDictLanguageList(cache, uri string, params *url.Values) (La
 			loggerError.Printf("save cache: %v", err)
 		}
 	}
-	return lc, nil
+	return nil
 }
 
 // getLanguageList requests translation language list.
@@ -381,8 +422,9 @@ func (ytg *Ytapi) getTrLanguageList(lc LangChecker, cache, uri string) error {
 
 // dictionaryLanguageList requests dictionary languages and sends it to channel c.
 func (ytg *Ytapi) dictionaryLanguageList(c chan LangChecker) {
+	lc := &DictionaryLanguages{}
 	params := &url.Values{"key": {ytg.Cfg.S.Dictionary}}
-	lc, err := ytg.getDictLanguageList(ytg.caches["dictionary_langs"], ServiceURLs["dictionary_langs"], params)
+	err := ytg.getDictLanguageList(lc, ytg.caches["dictionary_langs"], ServiceURLs["dictionary_langs"])
 	if err != nil {
 		loggerError.Println(err)
 	}
@@ -463,14 +505,14 @@ func (ytg *Ytapi) aliasDirection(direction string, langs *string, isAlias *bool)
 	return lchDic.Contains(ytg.Cfg.Default), lchTr.Contains(ytg.Cfg.Default)
 }
 
-// getSourceLang returns source language from a string of translation direction.
-func (ytg *Ytapi) getSourceLang(direction string) (string, error) {
-	langs := strings.SplitN(direction, "-", 2)
-	if (len(langs) > 0) && (len(langs[0]) > 0) {
-		return langs[0], nil
-	}
-	return "", errors.New("cannot detect translation direction")
-}
+//// getSourceLang returns source language from a string of translation direction.
+//func (ytg *Ytapi) getSourceLang(direction string) (string, error) {
+//	langs := strings.SplitN(direction, "-", 2)
+//	if (len(langs) > 0) && (len(langs[0]) > 0) {
+//		return langs[0], nil
+//	}
+//	return "", errors.New("cannot detect translation direction")
+//}
 
 // Spelling checks a spelling of income text message.
 // It returns SpellerResponse as Translator interface.
@@ -525,8 +567,44 @@ func (ytg *Ytapi) Translation(lang, txt string, tr bool) (Translator, error) {
 	return result, nil
 }
 
-// GetTranslations is a main Ytapi method to get spelling and translation results.
 func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
+	var (
+		wg sync.WaitGroup
+		spelling *SpellerResponse
+	)
+	t := &Translation{}
+	err := t.parse(ytg, params)
+	if err != nil {
+		return "", "", err
+	}
+	source, target, err := t.getLanguages()
+	if err != nil {
+		return "", "", err
+	}
+	go func() {
+		switch source {
+		// only 3 languages are supported for spelling
+		case "ru", "en", "uk":
+			wg.Add(1)
+			s, err := ytg.Spelling(source, t.Text)
+			if err != nil {
+				loggerError.Printf("spelling error: %v", err)
+			}
+			spelling = s.(*SpellerResponse)
+		default:
+			loggerDebug.Printf("spelling is skipped [%v]", source)
+		}
+	}()
+	// TODO: here!
+	result, err := ytg.Translation(t, source, target)
+	if err != nil {
+		return "", "", err
+	}
+	return "", "", nil
+}
+
+// GetTranslations is a main Ytapi method to get spelling and translation results.
+func (ytg *Ytapi) GetTranslations2(params []string) (string, string, error) {
 	var (
 		wg                     sync.WaitGroup
 		alias, ddirOk, tdirOk  bool
