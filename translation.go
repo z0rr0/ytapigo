@@ -33,51 +33,65 @@ func (t *TranslateResponse) Exists() bool {
 	return t.String() != ""
 }
 
+// TranslateLanguage is laguage info item.
+type TranslateLanguage struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
 // TranslateLanguages is a list of translation's languages (from JSON response).
-// "Dirs" field is an array that sorted in ascending order.
 type TranslateLanguages struct {
-	Dirs  []string          `json:"dirs"`
-	Langs map[string]string `json:"langs"`
+	Languages []TranslateLanguage `json:"languages"`
+}
+
+func (tl *TranslateLanguage) String() string {
+	return fmt.Sprintf("%v - %v", tl.Code, tl.Name)
 }
 
 // String is an implementation of String() method for TranslateLanguages
 // pointer (LangChecker interface).
 func (ltr *TranslateLanguages) String() string {
-	return fmt.Sprintf("Translation languages:\n%v\n%v", strings.Join(ltr.Dirs, ", "), ltr.Description())
+	codes := make([]string, ltr.Len())
+	for i, v := range ltr.Languages {
+		codes[i] = v.Code
+	}
+	return fmt.Sprintf("Translation languages:\n%v\n%v", strings.Join(codes, ", "), ltr.Description())
+}
+
+func (ltr TranslateLanguages) Len() int {
+	return len(ltr.Languages)
+}
+
+func (ltr TranslateLanguages) Swap(i, j int) {
+	ltr.Languages[i], ltr.Languages[j] = ltr.Languages[j], ltr.Languages[i]
+}
+
+func (ltr TranslateLanguages) Less(i, j int) bool {
+	return ltr.Languages[i].Code < ltr.Languages[j].Code
+}
+
+// Sort sorts languages by code.
+func (ltr *TranslateLanguages) Sort() {
+	sort.Sort(ltr)
 }
 
 // Contains is an implementation of Contains() method for TranslateLanguages
 // pointer (LangChecker interface).
 func (ltr *TranslateLanguages) Contains(s string) bool {
-	if len(ltr.Dirs) == 0 {
+	if len(ltr.Languages) == 0 {
 		return false
 	}
-	if !sort.StringsAreSorted(ltr.Dirs) {
-		sort.Strings(ltr.Dirs)
-	}
-	if i := sort.SearchStrings(ltr.Dirs, s); i < len(ltr.Dirs) && ltr.Dirs[i] == s {
-		return true
-	}
-	return false
+	i := sort.Search(ltr.Len(), func(i int) bool { return ltr.Languages[i].Code >= s })
+	return i < ltr.Len() && ltr.Languages[i].Code == s
 }
 
 // Description is an implementation of Description() method
 // for TranslateLanguages pointer (LangChecker interface).
 func (ltr *TranslateLanguages) Description() string {
 	const n int = 3
-	var (
-		collen, counter int
-	)
-	counter = len(ltr.Langs)
-	i, descstr := 0, make([]string, counter)
-	for k, v := range ltr.Langs {
-		if len(v) > 0 {
-			descstr[i] = fmt.Sprintf("%v - %v", k, v)
-			i++
-		}
-	}
-	sort.Strings(descstr)
+	var collen int
 
+	counter := ltr.Len()
 	if (counter % n) != 0 {
 		collen = counter/n + 1
 	} else {
@@ -87,11 +101,14 @@ func (ltr *TranslateLanguages) Description() string {
 	for j := 0; j < collen; j++ {
 		switch {
 		case j+2*collen < counter:
-			output[j] = fmt.Sprintf("%-25v %-25v %-25v", descstr[j], descstr[j+collen], descstr[j+2*collen])
+			output[j] = fmt.Sprintf(
+				"%-25v %-25v %-25v",
+				ltr.Languages[j].String(), ltr.Languages[j+collen].String(), ltr.Languages[j+2*collen].String(),
+			)
 		case j+collen < counter:
-			output[j] = fmt.Sprintf("%-25v %-25v", descstr[j], descstr[j+collen])
+			output[j] = fmt.Sprintf("%-25v %-25v", ltr.Languages[j].String(), ltr.Languages[j+collen].String())
 		default:
-			output[j] = fmt.Sprintf("%-25v", descstr[j])
+			output[j] = fmt.Sprintf("%-25v", ltr.Languages[j].String())
 		}
 	}
 	return strings.Join(output, "\n")

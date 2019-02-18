@@ -103,17 +103,15 @@ func (d *DictionaryResponse) String() string {
 
 // String is an implementation of String() method for DictionaryLanguages pointer (LangChecker interface).
 func (lch *DictionaryLanguages) String() string {
-	return fmt.Sprintf("%v", strings.Join(*lch, ", "))
+	return fmt.Sprintf("Dictionary languages:\n%v\n", strings.Join(*lch, ", "))
 }
 
 func (lch DictionaryLanguages) Len() int           { return len(lch) }
 func (lch DictionaryLanguages) Swap(i, j int)      { lch[i], lch[j] = lch[j], lch[i] }
 func (lch DictionaryLanguages) Less(i, j int) bool { return lch[i] < lch[j] }
 
-// Sort sorts
-func (lch *DictionaryLanguages) Sort() {
-	sort.Sort(lch)
-}
+// Sort sorts dictionary languages.
+func (lch *DictionaryLanguages) Sort() { sort.Sort(lch) }
 
 // Contains is an implementation of Contains() method for DictionaryLanguages pointer (LangChecker interface).
 func (lch *DictionaryLanguages) Contains(s string) bool {
@@ -121,10 +119,8 @@ func (lch *DictionaryLanguages) Contains(s string) bool {
 	if len(data) == 0 {
 		return false
 	}
-	if i := sort.SearchStrings(data, s); i < len(data) && data[i] == s {
-		return true
-	}
-	return false
+	i := sort.Search(lch.Len(), func(i int) bool { return data[i] >= s })
+	return i < lch.Len() && data[i] == s
 }
 
 // Description is an implementation of Description() method for
