@@ -19,7 +19,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -49,9 +48,6 @@ var (
 		"translate_langs":  "https://translate.api.cloud.yandex.net/translate/v2/languages",
 		"dictionary_langs": "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs",
 	}
-	// LangDirection is a regexp pattern to detect language direction.
-	LangDirection = regexp.MustCompile(`^[a-z]{2}-[a-z]{2}$`)
-
 	loggerError = log.New(os.Stderr, fmt.Sprintf(traceMsg, "ERROR"), log.Ldate|log.Ltime|log.Lshortfile)
 	loggerDebug = log.New(ioutil.Discard, fmt.Sprintf(traceMsg, "DEBUG"), log.Ldate|log.Lmicroseconds|log.Lshortfile)
 )
@@ -548,7 +544,6 @@ func (ytg *Ytapi) Translation(t *Translation, source, target string) (Translator
 func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 	var (
 		wg              sync.WaitGroup
-		spelling        *SpellerResponse
 		result          Translator
 		spellingResult  string
 		translateResult string
@@ -563,7 +558,7 @@ func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	wg.Add(1)
+	wg.Add(2) // spelling + translation
 	go func() {
 		switch source {
 		// only 3 languages are supported for spelling
@@ -571,29 +566,24 @@ func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 			s, err := ytg.Spelling(source, t.Text)
 			if err != nil {
 				loggerError.Printf("spelling error: %v", err)
+			} else {
+				spellingResult = s.String()
 			}
-			spelling = s.(*SpellerResponse)
 		default:
 			loggerDebug.Printf("spelling is skipped [%v]", source)
 		}
 		wg.Done()
 	}()
-	wg.Add(1)
 	go func() {
 		result, err = ytg.Translation(t, source, target)
 		if err != nil {
 			loggerError.Printf("translation error: %v", err)
+		} else {
+			translateResult = result.String()
 		}
 		wg.Done()
 	}()
 	wg.Wait()
-
-	if spelling != nil {
-		spellingResult = spelling.String()
-	}
-	if result != nil {
-		translateResult = result.String()
-	}
 	return spellingResult, translateResult, nil
 }
 

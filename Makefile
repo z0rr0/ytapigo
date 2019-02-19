@@ -2,20 +2,20 @@ PROGRAM=YtapiGo
 BIN=bin/main
 VERSION=`bash version.sh`
 PKG=github.com/z0rr0/ytapigo
-MAIN=github.com/z0rr0/main
+MAIN=main.go
 SOURCEDIR=src/$(PKG)
+TARGET=yg
 
 
 all: test
 
-install:
-	go install -ldflags "$(VERSION)" $(MAIN)
 
-lint: install
+build:
+	go build -o $(TARGET) -ldflags "$(VERSION)" $(MAIN)
+
+lint: build
 	go vet $(PKG)
 	golint $(PKG)
-	go vet $(MAIN)
-	golint $(MAIN)
 
 test: lint
 	# go tool cover -html=coverage.out
@@ -29,4 +29,4 @@ linux:
 	env GOOS=linux GOARCH=amd64 go install -ldflags "$(VERSION)" $(MAIN)
 
 clean:
-	rm -rf $(GOPATH)/$(BIN) $(GOPATH)/$(SOURCEDIR)/*.out $(GOPATH)/src/$(MAIN)/*.out
+	rm $(TARGET)

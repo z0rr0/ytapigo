@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ${GOPATH}/src/github.com/z0rr0/ytapigo
+cd ${HOME}/go/src/github.com/z0rr0/ytapigo
 
 FILENAME="version"
 TS="`TZ=UTC date +\"%F_%T\"`UTC"

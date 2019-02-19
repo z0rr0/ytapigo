@@ -38,7 +38,8 @@ lion [ˈlaɪən] ()
 
 ### Dependencies
 
-Standard [Go library](http://golang.org/pkg/).
+- [github.com/dgrijalva/jwt-go](https://github.com/dgrijalva/jwt-go) - Go implementation of JSON Web Tokens.
+
 
 ### API keys
 
