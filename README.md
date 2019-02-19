@@ -3,7 +3,7 @@ YtapiGo
 
 [![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo) [![Build Status](https://travis-ci.org/z0rr0/ytapigo.svg?branch=master)](https://travis-ci.org/z0rr0/ytapigo)
 
-It is a program to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.com/translate/). By default UTF-8 encoding is used.
+It is a program to translate and check spelling using the console, it based on [Yandex Translate API](https://cloud.yandex.ru/docs/translate/). By default UTF-8 encoding is used.
 
 It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main.go.example), the [documentation](http://godoc.org/github.com/z0rr0/ytapigo) contains details about all methods and variables.
 
@@ -26,8 +26,8 @@ chmod u+x ytapigo
 ./ytapigo en-ru lion
 lion [ˈlaɪən] ()
         лев (noun)
-        syn: львенок (noun)
-        mean: lev, cub
+        syn: львица (noun), львенок (noun)
+        mean: lev, lioness, cub
         examples:
                 sea lion: морской лев
 lion [ˈlaɪən] ()
@@ -46,22 +46,31 @@ Users should get API KEYs before an using this program, these values have to be 
 
 ```
 {
-  "APItr": "some key value",
-  "APIdict": "some key value",
-  "Aliases": {                      // User's languages aliases
-    "en-ru": ["en", "англ", "e"],
-    "ru-en": ["ru", "ру" "r"]
+  "services": {
+    "translation": {
+      "folder": "folder_id",
+      "key_id": "key id",
+      "service_account_id": "service account id",
+      "key_file": "rsa private file"
+    },
+    "dictionary": "token"
   },
-  "Default": "en-ru",               // default translation direction
-  "Timeout": 5                      // connection timeout, default 10 seconds
+  "languages": {
+    "default": "en-ru",
+    "aliases": {
+      "en-ru": ["enru", "en", "англ"],
+      "ru-en": ["ruen", "ru", "ру"]
+    }
+  },
+  "timeout": 10
 }
 ```
 
-1. **APItr** - API KEY for [Yandex Translate](http://api.yandex.com/key/form.xml?service=trnsl)
-2. **APIdict** - API KEY for [Yandex Dictionary](http://api.yandex.com/key/form.xml?service=dict)
+1. **translation** - documentation [Yandex Translate](https://cloud.yandex.ru/docs/translate/)
+2. **dictionary** - documentation [Yandex Dictionary](https://tech.yandex.com/dictionary/)
 
-It was implemented using the services:
+Also it uses [Yandex Speller](http://api.yandex.ru/speller/).
 
-* [Yandex Dictionary](http://api.yandex.com/dictionary/)
-* [Yandex Translate](http://api.yandex.com/translate/)
-* [Yandex Speller](http://api.yandex.ru/speller/)
+## License
+
+This source code is governed by a BSD license that can be found in the [LICENSE](https://github.com/z0rr0/ytapigo/blob/master/LICENSE) file.

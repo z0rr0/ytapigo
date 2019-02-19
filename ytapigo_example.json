@@ -15,5 +15,5 @@
       "ru-en": ["ruen", "ru", "ру"]
     }
   },
-  "timeout": 5
+  "timeout": 10
 }
