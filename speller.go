@@ -33,7 +33,11 @@ func (s *SpellerResponse) Exists() bool {
 
 // String is an implementation of String() method for SpellerResponse.
 func (s *SpellerResponse) String() string {
-	items := make([]string, len(*s))
+	n := len(*s)
+	if n == 0 {
+		return ""
+	}
+	items := make([]string, n)
 	for i, v := range *s {
 		if v.Exists() {
 			items[i] = v.String()

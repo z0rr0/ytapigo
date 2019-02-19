@@ -82,14 +82,22 @@ func (ltr *TranslateLanguages) Sort() {
 	sort.Sort(ltr)
 }
 
-// Contains is an implementation of Contains() method for TranslateLanguages
-// pointer (LangChecker interface).
-func (ltr *TranslateLanguages) Contains(s string) bool {
+func (ltr *TranslateLanguages) containsLanguage(s string) bool {
 	if len(ltr.Languages) == 0 {
 		return false
 	}
 	i := sort.Search(ltr.Len(), func(i int) bool { return ltr.Languages[i].Code >= s })
 	return i < ltr.Len() && ltr.Languages[i].Code == s
+}
+
+// Contains is an implementation of Contains() method for TranslateLanguages
+// pointer (LangChecker interface).
+func (ltr *TranslateLanguages) Contains(s string) bool {
+	languages := strings.SplitN(s, "-", 2)
+	if len(languages) < 2 {
+		return false
+	}
+	return ltr.containsLanguage(languages[0]) && ltr.containsLanguage(languages[1])
 }
 
 // Description is an implementation of Description() method

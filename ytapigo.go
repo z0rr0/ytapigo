@@ -190,14 +190,14 @@ func (t *Translation) multiParse(ytg *Ytapi, params []string) error {
 		t.IsDictionary = false
 		return nil
 	}
-	return fmt.Errorf("cannot verify 'Default' dictionary direction: %v", ytg.Cfg.L.Default)
+	return fmt.Errorf("cannot verify 'Default' translation direction: %v", ytg.Cfg.L.Default)
 }
 
 func (t *Translation) parse(ytg *Ytapi, params []string) error {
 	switch n := len(params); {
 	case n < 1:
 		return errors.New("too few parameters")
-	case n == 1:
+	case (n == 1) && (len(strings.SplitN(params[0], " ", 2)) == 1):
 		languages := &DictionaryLanguages{}
 		err := ytg.getDictLanguageList(languages, ytg.caches["dictionary_langs"], ServiceURLs["dictionary_langs"])
 		if err != nil {
@@ -209,6 +209,12 @@ func (t *Translation) parse(ytg *Ytapi, params []string) error {
 		t.Direction = ytg.Cfg.L.Default
 		t.Text = params[0]
 		t.IsDictionary = true
+	case n == 1:
+		// multi-word params[0]
+		err := t.multiParse(ytg, strings.Split(params[0], " "))
+		if err != nil {
+			return err
+		}
 	default:
 		err := t.multiParse(ytg, params)
 		if err != nil {
@@ -540,11 +546,11 @@ func (ytg *Ytapi) Translation(t *Translation, source, target string) (Translator
 
 func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 	var (
-		wg          sync.WaitGroup
-		spelling    *SpellerResponse
-		result      Translator
-		spellResult string
-		transResult string
+		wg              sync.WaitGroup
+		spelling        *SpellerResponse
+		result          Translator
+		spellingResult  string
+		translateResult string
 	)
 	t := &Translation{}
 	err := t.parse(ytg, params)
@@ -582,12 +588,12 @@ func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 	wg.Wait()
 
 	if spelling != nil {
-		spellResult = spelling.String()
+		spellingResult = spelling.String()
 	}
 	if result != nil {
-		transResult = result.String()
+		translateResult = result.String()
 	}
-	return spellResult, transResult, nil
+	return spellingResult, translateResult, nil
 }
 
 // Duration prints a time duration by debug logger.
