@@ -13,6 +13,7 @@ import (
 	"strings"
 )
 
+// TranslateResponseItem is an item for translation request.
 type TranslateResponseItem struct {
 	Text                 string `json:"text"`
 	DetectedLanguageCode string `json:"detectedLanguageCode"`

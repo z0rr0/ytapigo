@@ -544,6 +544,7 @@ func (ytg *Ytapi) Translation(t *Translation, source, target string) (Translator
 	return result, err
 }
 
+// GetTranslations returns spelling and translation results.
 func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 	var (
 		wg              sync.WaitGroup
