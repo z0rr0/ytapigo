@@ -5,22 +5,23 @@ YtapiGo
 
 It is a program to translate and check spelling using the console, it based on [Yandex Translate API](https://cloud.yandex.ru/docs/translate/). By default UTF-8 encoding is used.
 
-It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main.go.example), the [documentation](http://godoc.org/github.com/z0rr0/ytapigo) contains details about all methods and variables.
+It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/).
 
 A spell check is supported only for English, Russian and Ukrainian languages.
 
 ### Usage
 
+Build binary file **yg**: 
 
-See example in [main.go.example](https://github.com/z0rr0/ytapigo/blob/master/main.go.example).
+```bash
+make build
+```
 
-The latest versions of binary files are available in [Releases](https://github.com/z0rr0/ytapigo/releases)
 
 Usage:
 
 ```
-chmod u+x ytapigo
-./ytapigo en-fr Hello dear fried!
+./yg en-fr Hello dear fried!
 # output: Bonjour chers frit!
 
 ./ytapigo en-ru lion
@@ -36,14 +37,10 @@ lion [ˈlaɪən] ()
                 lion's share: львиная доля
 ```
 
-### Dependencies
-
-- [github.com/dgrijalva/jwt-go](https://github.com/dgrijalva/jwt-go) - Go implementation of JSON Web Tokens.
-
-
 ### API keys
 
-Users should get API KEYs before an using this program, these values have to be written to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one can have a list of possible user's aliases.
+Users should get API keys before *ytapigo* using (see links below).
+By default configuration file will be searched in $HOME/.ytapigo/cfg.json (example [cfg.json](https://github.com/z0rr0/ytapigo/blob/master/cfg.json)).
 
 ```
 {

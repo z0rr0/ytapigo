@@ -1,7 +1,7 @@
 PROGRAM=YtapiGo
 BIN=bin/main
 VERSION=`bash version.sh`
-PKG=github.com/z0rr0/ytapigo
+PKG=github.com/z0rr0/ytapigo/ytapi
 MAIN=main.go
 TARGET=yg
 
