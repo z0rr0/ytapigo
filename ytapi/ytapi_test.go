@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package ytapigo implements console text translation
+// Package ytapi implements console text translation
 // method using Yandex web services.
 //
-package ytapigo
+package ytapi
 
 import (
 	"strings"

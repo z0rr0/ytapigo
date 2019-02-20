@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd ${HOME}/go/src/github.com/z0rr0/ytapigo
-
 FILENAME="version"
 TS="`TZ=UTC date +\"%F_%T\"`UTC"
 TAG="`git tag | sort --version-sort | tail -1`"

@@ -3,7 +3,6 @@ BIN=bin/main
 VERSION=`bash version.sh`
 PKG=github.com/z0rr0/ytapigo
 MAIN=main.go
-SOURCEDIR=src/$(PKG)
 TARGET=yg
 
 
@@ -16,6 +15,8 @@ build:
 lint: build
 	go vet $(PKG)
 	golint $(PKG)
+	go vet $(PKG)/cloud
+	golint $(PKG)/cloud
 
 test: lint
 	# go tool cover -html=coverage.out

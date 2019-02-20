@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/z0rr0/ytapigo"
+	"github.com/z0rr0/ytapigo/ytapi"
 )
 
 const (
@@ -49,7 +49,7 @@ func main() {
 	if configDir == "" {
 		configDir = filepath.Join(os.Getenv("HOME"), ".ytapigo")
 	}
-	ytg, err := ytapigo.New(configDir, *nocache, *debug)
+	ytg, err := ytapi.New(configDir, *nocache, *debug)
 	if err != nil {
 		panic(err)
 	}
