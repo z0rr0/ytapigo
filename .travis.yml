@@ -1,0 +1,11 @@
+language: go
+
+go:
+  - tip
+
+branches:
+  only:
+    - master
+
+script:
+  - make test
