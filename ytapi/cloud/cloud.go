@@ -45,7 +45,8 @@ type Account struct {
 
 // Token is iam token struct.
 type Token struct {
-	IAMToken string `json:"iamToken"`
+	IAMToken  string `json:"iamToken"`
+	ExpiresAt string `json:"expiresAt"`
 }
 
 // loadPrivateKey reads and parses RSA key file.
