@@ -5,6 +5,6 @@ replace github.com/z0rr0/ytapigo/ytapi => ./ytapi
 replace github.com/z0rr0/ytapigo/ytapi/cloud => ./ytapi/cloud
 
 require (
-	github.com/z0rr0/ytapigo/ytapi v0.0.0-20190223214658-21a04a92e82e
-	github.com/z0rr0/ytapigo/ytapi/cloud v0.0.0-20190223214658-21a04a92e82e // indirect
+	github.com/z0rr0/ytapigo/ytapi v0.0.0-20190223215850-f58a17e60e62
+	github.com/z0rr0/ytapigo/ytapi/cloud v0.0.0-20190223215850-f58a17e60e62 // indirect
 )

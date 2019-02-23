@@ -25,6 +25,11 @@ test: lint
 	# go tool trace ratest.test trace.out
 	go test -race -v -cover -coverprofile=coverage.out -trace trace.out $(PKG)/cloud
 
+travis: build
+	go vet $(PKG)
+	go vet $(PKG)/cloud
+	go test -race -v -cover $(PKG)/cloud
+
 arm:
 	env GOOS=linux GOARCH=arm go install -ldflags "$(VERSION)" $(MAIN)
 
