@@ -8,8 +8,10 @@ TARGET=yg
 
 all: test
 
+deps:
+	go get -u
 
-build:
+build: deps
 	go build -o $(TARGET) -ldflags "$(VERSION)" $(MAIN)
 
 lint: build
