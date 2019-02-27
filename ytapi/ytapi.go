@@ -137,7 +137,7 @@ func (t *Translation) multiParse(ytg *Ytapi, params []string) error {
 		return errors.New("failed usage multiParse method")
 	}
 	if n == 2 {
-		// is it dictionary
+		// is it a dictionary request
 		languages := &DictionaryLanguages{}
 		err := ytg.getDictLanguageList(languages, ytg.caches["dictionary_langs"], ServiceURLs["dictionary_langs"])
 		if err != nil {
@@ -145,6 +145,13 @@ func (t *Translation) multiParse(ytg *Ytapi, params []string) error {
 		}
 		direction := params[0]
 		if languages.Contains(direction) {
+			multiWords := strings.Split(params[1], " ")
+			if len(multiWords) > 1 {
+				t.Direction = direction
+				t.Text = params[1]
+				t.IsDictionary = false
+				return nil
+			}
 			t.Direction = params[0]
 			t.Text = params[1]
 			t.IsDictionary = true
@@ -152,6 +159,13 @@ func (t *Translation) multiParse(ytg *Ytapi, params []string) error {
 		}
 		direction = t.getAlias(languages, direction, ytg)
 		if direction != "" {
+			multiWords := strings.Split(params[1], " ")
+			if len(multiWords) > 1 {
+				t.Direction = direction
+				t.Text = params[1]
+				t.IsDictionary = false
+				return nil
+			}
 			t.Direction = direction
 			t.Text = params[1]
 			t.IsDictionary = true
