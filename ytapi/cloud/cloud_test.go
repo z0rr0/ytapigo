@@ -7,12 +7,17 @@
 package cloud
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
 	"strings"
 	"testing"
 	"time"
@@ -24,8 +29,26 @@ const (
 
 var (
 	timeout = time.Second
-	logger = log.New(os.Stdout, "TEST", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	logger  = log.New(os.Stdout, "TEST", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 )
+
+func getKey(name string, t *testing.T) error {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return err
+	}
+	f, err := os.Create(name)
+	defer func() {
+		if err := f.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
+	privateKey := &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}
+	return pem.Encode(f, privateKey)
+}
 
 func TestRequest(t *testing.T) {
 	const tokenValue = "abc123"
@@ -33,7 +56,7 @@ func TestRequest(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
 		if _, err := fmt.Fprintf(w, response); err != nil {
-				t.Error(err)
+			t.Error(err)
 		}
 	}))
 	defer s.Close()
@@ -51,5 +74,44 @@ func TestRequest(t *testing.T) {
 	}
 	if iamt := token.IAMToken; iamt != tokenValue {
 		t.Errorf("failed token: %v != %v", iamt, tokenValue)
+	}
+}
+
+func TestAccount_SetIAMToken(t *testing.T) {
+	const tokenValue = "abc123"
+
+	fileName := path.Join(os.TempDir(), "ytapigo_test.pem")
+	err := getKey(fileName, t)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Remove(fileName); err != nil {
+			t.Error(err)
+		}
+	}()
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
+		if _, err := fmt.Fprintf(w, response); err != nil {
+			t.Error(err)
+		}
+	}))
+	defer s.Close()
+
+	client := s.Client()
+	account := &Account{
+		FolderID:         "123",
+		KeyID:            "456",
+		ServiceAccountID: "789",
+		KeyFile:          fileName,
+	}
+	URL = s.URL // overwrite default URL
+	err = account.SetIAMToken("", client, ua, timeout, logger, logger)
+	if err != nil {
+		t.Error(err)
+	}
+	if account.IAMToken != tokenValue {
+		t.Errorf("failed token value: %v", account.IAMToken)
 	}
 }

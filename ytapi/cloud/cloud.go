@@ -25,6 +25,9 @@ import (
 const (
 	// TTL is token live period.
 	TTL = time.Hour
+)
+
+var (
 	// URL is URL for authentication requests.
 	URL = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
 )
