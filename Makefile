@@ -30,6 +30,7 @@ travis: build
 	go vet $(PKG)
 	go vet $(PKG)/cloud
 	go test -race -v -cover $(PKG)/cloud
+	go test -race -v -cover $(PKG)
 
 arm:
 	env GOOS=linux GOARCH=arm go install -ldflags "$(VERSION)" $(MAIN)
