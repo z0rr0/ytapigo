@@ -104,24 +104,24 @@ func (ltr *TranslateLanguages) Contains(s string) bool {
 // for TranslateLanguages pointer (LangChecker interface).
 func (ltr *TranslateLanguages) Description() string {
 	const n int = 3
-	var collen int
+	var colLen int
 
 	counter := ltr.Len()
 	if (counter % n) != 0 {
-		collen = counter/n + 1
+		colLen = counter/n + 1
 	} else {
-		collen = counter / n
+		colLen = counter / n
 	}
-	output := make([]string, collen)
-	for j := 0; j < collen; j++ {
+	output := make([]string, colLen)
+	for j := 0; j < colLen; j++ {
 		switch {
-		case j+2*collen < counter:
+		case j+2*colLen < counter:
 			output[j] = fmt.Sprintf(
 				"%-25v %-25v %-25v",
-				ltr.Languages[j].String(), ltr.Languages[j+collen].String(), ltr.Languages[j+2*collen].String(),
+				ltr.Languages[j].String(), ltr.Languages[j+colLen].String(), ltr.Languages[j+2*colLen].String(),
 			)
-		case j+collen < counter:
-			output[j] = fmt.Sprintf("%-25v %-25v", ltr.Languages[j].String(), ltr.Languages[j+collen].String())
+		case j+colLen < counter:
+			output[j] = fmt.Sprintf("%-25v %-25v", ltr.Languages[j].String(), ltr.Languages[j+colLen].String())
 		default:
 			output[j] = fmt.Sprintf("%-25v", ltr.Languages[j].String())
 		}

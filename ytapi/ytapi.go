@@ -8,7 +8,6 @@ package ytapi
 
 import (
 	"context"
-	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -82,7 +81,6 @@ type Config struct {
 	S       Services  `json:"services"`
 	L       Languages `json:"languages"`
 	Timeout uint      `json:"timeout"`
-	key     map[string]*rsa.PrivateKey
 }
 
 // Ytapi is a main structure
@@ -449,7 +447,7 @@ func (ytg *Ytapi) dictionaryLanguageList(c chan LangChecker) {
 // translationLanguageList requests translation languages and sends it to channel c.
 func (ytg *Ytapi) translationLanguageList(c chan LangChecker) {
 	lc := &TranslateLanguages{}
-	err := ytg.getTrLanguageList(lc, ytg.caches["translate_langs"], ServiceURLs["dictionary_langs"])
+	err := ytg.getTrLanguageList(lc, ytg.caches["translate_langs"], ServiceURLs["translate_langs"])
 	if err != nil {
 		loggerError.Println(err)
 	}

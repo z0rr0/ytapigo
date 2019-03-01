@@ -4,7 +4,7 @@
       "folder": "folder_id",
       "key_id": "key id",
       "service_account_id": "service account id",
-      "key_file": "rsa private file"
+      "key_file": "ytapigo_rsa_test.pem"
     },
     "dictionary": "token"
   },

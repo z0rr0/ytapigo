@@ -24,6 +24,7 @@ test: lint
 	# go tool cover -html=coverage.out
 	# go tool trace ratest.test trace.out
 	go test -race -v -cover -coverprofile=coverage.out -trace trace.out $(PKG)/cloud
+	go test -race -v -cover -coverprofile=coverage.out -trace trace.out $(PKG)
 
 travis: build
 	go vet $(PKG)
