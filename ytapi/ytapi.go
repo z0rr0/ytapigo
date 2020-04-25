@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Alexander Zaitsev <me@axv.email>. All rights reserved.
+// Copyright (c) 2020, Alexander Zaitsev <me@axv.email>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -339,7 +339,7 @@ func (ytg *Ytapi) Request(url string, params *url.Values) ([]byte, error) {
 	}()
 	loggerDebug.Printf(
 		"done %v-%v [%v]: %v\n",
-		resp.Request.Method, resp.StatusCode, time.Now().Sub(start), resp.Request.URL,
+		resp.Request.Method, resp.StatusCode, time.Since(start), resp.Request.URL,
 	)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -517,8 +517,7 @@ func (ytg *Ytapi) translationProcess(t *Translation, source, target string) (Tra
 }
 
 func (ytg *Ytapi) dictionaryProcess(t *Translation) (Translator, error) {
-	var result Translator
-	result = &DictionaryResponse{}
+	var result Translator = &DictionaryResponse{}
 	params := url.Values{
 		"lang": {t.Direction},
 		"text": {t.Text},
@@ -600,6 +599,6 @@ func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 
 // Duration prints a time duration by debug logger.
 func (ytg *Ytapi) Duration(t time.Time) {
-	diff := time.Now().Sub(t)
+	diff := time.Since(t)
 	loggerDebug.Printf("duration=%s\n", diff)
 }

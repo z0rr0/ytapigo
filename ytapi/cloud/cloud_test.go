@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Alexander Zaitsev <me@axv.email>. All rights reserved.
+// Copyright (c) 2020, Alexander Zaitsev <me@axv.email>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -38,6 +38,9 @@ func getKey(name string, t *testing.T) error {
 		return err
 	}
 	f, err := os.Create(name)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		if err := f.Close(); err != nil {
 			t.Error(err)
@@ -55,7 +58,7 @@ func TestRequest(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -93,7 +96,7 @@ func TestAccount_SetIAMToken(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))

@@ -32,6 +32,9 @@ func getKey(name string, t *testing.T) error {
 		return err
 	}
 	f, err := os.Create(name)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		if err := f.Close(); err != nil {
 			t.Error(err)
@@ -57,7 +60,7 @@ func TestNew(t *testing.T) {
 	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -86,7 +89,7 @@ func TestYtapi_GetLanguages(t *testing.T) {
 	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -96,7 +99,7 @@ func TestYtapi_GetLanguages(t *testing.T) {
 	trLangServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := `{"languages":[{"code":"ru","name":"Русский"}]}`
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -106,7 +109,7 @@ func TestYtapi_GetLanguages(t *testing.T) {
 	dictLangServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := `["ru-en"]`
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -145,7 +148,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -155,7 +158,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 	trLangServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := `{"languages":[{"code":"ru","name":"Русский"},{"code":"en","name":"English"}]}`
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -165,7 +168,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 	dictLangServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := `["en-ru"]`
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -175,7 +178,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 	spellerServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := `[{"code":1,"pos":0,"row":0,"col":0,"len":5,"word": "timee","s":["time"]}]`
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -208,7 +211,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
     }
   ]
 }`
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -218,7 +221,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 	translationServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := `{"translations":[{"text": "тест","detectedLanguageCode":"ru"}]}`
-		if _, err := fmt.Fprintf(w, response); err != nil {
+		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
 	}))

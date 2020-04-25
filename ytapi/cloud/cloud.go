@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Alexander Zaitsev <me@axv.email>. All rights reserved.
+// Copyright (c) 2020, Alexander Zaitsev <me@axv.email>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -101,6 +101,9 @@ func (a *Account) SetIAMToken(cacheFile string, client *http.Client, userAgent s
 	}
 	body := strings.NewReader(fmt.Sprintf(`{"jwt":"%s"}`, jot))
 	data, err := Request(client, body, URL, "", userAgent, timeout, li, le)
+	if err != nil {
+		return err
+	}
 	token := &Token{}
 	err = json.Unmarshal(data, token)
 	if err != nil {
@@ -188,7 +191,7 @@ func Request(client *http.Client, data io.Reader, uri, bearer, userAgent string,
 	}()
 	li.Printf(
 		"done %v-%v [%v]: %v\n",
-		resp.Request.Method, resp.StatusCode, time.Now().Sub(start), resp.Request.URL,
+		resp.Request.Method, resp.StatusCode, time.Since(start), resp.Request.URL,
 	)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

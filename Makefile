@@ -1,42 +1,32 @@
 PROGRAM=YtapiGo
-BIN=bin/main
-VERSION=`bash version.sh`
-PKG=github.com/z0rr0/ytapigo/ytapi
-MAIN=main.go
+TS=$(shell date -u +"%F_%T")
+TAG=$(shell git tag | sort --version-sort | tail -1)
+COMMIT=$(shell git log --oneline | head -1)
+VERSION=$(firstword $(COMMIT))
+FLAG=-X main.Version=$(TAG) -X main.Revision=git:$(VERSION) -X main.BuildDate=$(TS)
 TARGET=yg
-
 
 all: test
 
-deps:
-	go get -u
-
-build: deps
-	go build -o $(TARGET) -ldflags "$(VERSION)" $(MAIN)
+build:
+	go build -o $(TARGET) -ldflags "$(FLAG)" .
 
 lint: build
-	go vet $(PKG)
-	golint $(PKG)
-	go vet $(PKG)/cloud
-	golint $(PKG)/cloud
+	go vet ./...
+	golint ./...
 
 test: lint
-	# go tool cover -html=coverage.out
-	# go tool trace ratest.test trace.out
-	go test -race -v -cover -coverprofile=coverage.out -trace trace.out $(PKG)/cloud
-	go test -race -v -cover -coverprofile=coverage.out -trace trace.out $(PKG)
+	go test -race -v -cover ./...
 
 travis: build
-	go vet $(PKG)
-	go vet $(PKG)/cloud
-	go test -race -v -cover $(PKG)/cloud
-	go test -race -v -cover $(PKG)
+	go vet ./...
+	go test -race -v -cover ./...
 
 arm:
-	env GOOS=linux GOARCH=arm go install -ldflags "$(VERSION)" $(MAIN)
+	env GOOS=linux GOARCH=arm go build -o $(TARGET) -ldflags "$(FLAG)" .
 
 linux:
-	env GOOS=linux GOARCH=amd64 go install -ldflags "$(VERSION)" $(MAIN)
+	env GOOS=linux GOARCH=amd64 go build -o $(TARGET) -ldflags "$(FLAG)" .
 
 clean:
 	rm $(TARGET)
