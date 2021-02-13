@@ -13,6 +13,14 @@ import (
 	"strings"
 )
 
+// TextPosGen is common struct for base data.
+type TextPosGen struct {
+	Text string `json:"text"`
+	Pos  string `json:"pos"`
+	Gen  string `json:"gen"`
+	Fr   int    `json:"fr"`
+}
+
 // DictExample is an internal type of DictionaryResponse.
 type DictExample struct {
 	Pos  string              `json:"pos"`
@@ -22,9 +30,8 @@ type DictExample struct {
 
 // JSONTrDictItem is an internal type of DictionaryResponse.
 type JSONTrDictItem struct {
-	Text string              `json:"text"`
-	Pos  string              `json:"pos"`
-	Syn  []map[string]string `json:"syn"`
+	TextPosGen
+	Syn  []TextPosGen        `json:"syn"`
 	Mean []map[string]string `json:"mean"`
 	Ex   []DictExample       `json:"ex"`
 }
@@ -34,7 +41,6 @@ type DictArticle struct {
 	Pos  string           `json:"post"`
 	Text string           `json:"text"`
 	Ts   string           `json:"ts"`
-	Gen  string           `json:"gen"`
 	Tr   []JSONTrDictItem `json:"tr"`
 }
 
@@ -71,8 +77,8 @@ func (d *DictionaryResponse) String() string {
 		for j, tr := range def.Tr {
 			syn, mean, ex = make([]string, len(tr.Syn)), make([]string, len(tr.Mean)), make([]string, len(tr.Ex))
 			txtSyn, txtMean, txtEx = "", "", ""
-			for k, v := range tr.Syn {
-				syn[k] = fmt.Sprintf("%v (%v)", v["text"], v["pos"])
+			for k, s := range tr.Syn {
+				syn[k] = fmt.Sprintf("%v (%v)", s.Text, s.Pos)
 			}
 			for k, v := range tr.Mean {
 				mean[k] = v["text"]

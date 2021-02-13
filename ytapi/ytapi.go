@@ -411,7 +411,7 @@ func (ytg *Ytapi) getTrLanguageList(lc LangChecker, cache, uri string) error {
 		}
 	}
 	requestData := strings.NewReader(fmt.Sprintf(`{"folder_id":"%s"}`, ytg.Cfg.S.Translation.FolderID))
-	body, err = cloud.Request(ytg.client, requestData, ServiceURLs["translate_langs"],
+	body, err = cloud.Request(ytg.client, requestData, uri,
 		ytg.Cfg.S.Translation.IAMToken, userAgent, ytg.timeout, loggerDebug, loggerError)
 	if err != nil {
 		return err
@@ -526,11 +526,11 @@ func (ytg *Ytapi) dictionaryProcess(t *Translation) (Translator, error) {
 	loggerDebug.Printf("dictionary process: %v", params.Encode())
 	body, err := ytg.Request(ServiceURLs["dictionary"], &params)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed dictionary request: %w", err)
 	}
 	err = json.Unmarshal(body, result)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed dictionary request unmarshal: %w", err)
 	}
 	return result, nil
 }
