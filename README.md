@@ -1,7 +1,8 @@
 YtapiGo
 =======
 
-[![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo) [![Build Status](https://travis-ci.org/z0rr0/ytapigo.svg?branch=master)](https://travis-ci.org/z0rr0/ytapigo)
+[![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo)
+![Go](https://github.com/z0rr0/ytapigo/workflows/Go/badge.svg)
 
 It is a program to translate and check spelling using the console, it based on [Yandex Translate API](https://cloud.yandex.ru/docs/translate/). By default UTF-8 encoding is used.
 
@@ -24,14 +25,14 @@ Usage:
 ./yg en-fr Hello dear fried!
 # output: Bonjour chers frit!
 
-./ytapigo en-ru lion
-lion [ˈlaɪən] ()
+./yg en-ru lion
+lion [ˈlaɪən] (noun)
         лев (noun)
         syn: львица (noun), львенок (noun)
         mean: lev, lioness, cub
         examples:
                 sea lion: морской лев
-lion [ˈlaɪən] ()
+lion [ˈlaɪən] (adjective)
         львиный (adjective)
         examples:
                 lion's share: львиная доля
