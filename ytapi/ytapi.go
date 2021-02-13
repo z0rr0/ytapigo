@@ -139,7 +139,7 @@ func (t *Translation) multiParse(ytg *Ytapi, params []string) error {
 		languages := &DictionaryLanguages{}
 		err := ytg.getDictLanguageList(languages, ytg.caches["dictionary_langs"], ServiceURLs["dictionary_langs"])
 		if err != nil {
-			return err
+			return fmt.Errorf("git dict langs: %w", err)
 		}
 		direction := params[0]
 		if languages.Contains(direction) {
@@ -172,9 +172,9 @@ func (t *Translation) multiParse(ytg *Ytapi, params []string) error {
 		}
 	}
 	languages := &TranslateLanguages{}
-	err := ytg.getTrLanguageList(languages, ytg.caches["translate_langs"], ServiceURLs["dictionary_langs"])
+	err := ytg.getTrLanguageList(languages, ytg.caches["translate_langs"], ServiceURLs["translate_langs"])
 	if err != nil {
-		return err
+		return fmt.Errorf("get translsate langs: %w", err)
 	}
 	direction := params[0]
 	if languages.Contains(direction) {
@@ -220,12 +220,12 @@ func (t *Translation) parse(ytg *Ytapi, params []string) error {
 		// multi-word params[0]
 		err := t.multiParse(ytg, strings.Split(params[0], " "))
 		if err != nil {
-			return err
+			return fmt.Errorf("one word parse: %w", err)
 		}
 	default:
 		err := t.multiParse(ytg, params)
 		if err != nil {
-			return err
+			return fmt.Errorf("multi words parse: %w", err)
 		}
 	}
 	return nil
@@ -561,21 +561,21 @@ func (ytg *Ytapi) GetTranslations(params []string) (string, string, error) {
 	t := &Translation{}
 	err := t.parse(ytg, params)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("parse params: %w", err)
 	}
 	loggerDebug.Println(t)
 	source, target, err := t.getLanguages()
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("get languages: %w", err)
 	}
 	wg.Add(2) // spelling + translation
 	go func() {
 		switch source {
 		// only 3 languages are supported for spelling
 		case "ru", "en", "uk":
-			s, err := ytg.Spelling(source, t.Text)
-			if err != nil {
-				loggerError.Printf("spelling error: %v", err)
+			s, e := ytg.Spelling(source, t.Text)
+			if e != nil {
+				loggerError.Printf("spelling error: %v", e)
 			} else {
 				spellingResult = s.String()
 			}

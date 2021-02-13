@@ -190,10 +190,13 @@ func TestYtapi_GetTranslations(t *testing.T) {
 		response := `
 { "head": {},
   "def": [
-     { "text": "time", "pos": "noun",
+     { "text": "time", "pos": "noun", "ts": "taɪm",
        "tr": [
-          { "text": "время", "pos": "существительное",
-            "syn": [{ "text": "раз" },{ "text": "тайм" }],
+          { "text": "время", "pos": "noun", "gen": "ср",
+            "syn": [
+				{"text":"раз","pos":"noun","gen":"м","fr":10},
+				{"text":"момент","pos":"noun","gen":"м","fr":5}
+			],
             "mean": [{ "text": "timing" },{ "text": "fold" },{ "text": "half"}],
             "ex" : [
                { "text": "prehistoric time",
@@ -211,8 +214,8 @@ func TestYtapi_GetTranslations(t *testing.T) {
     }
   ]
 }`
-		if _, err := fmt.Fprint(w, response); err != nil {
-			t.Error(err)
+		if _, e := fmt.Fprint(w, response); e != nil {
+			t.Error(e)
 		}
 	}))
 	defer dictServer.Close()
@@ -221,8 +224,8 @@ func TestYtapi_GetTranslations(t *testing.T) {
 	translationServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := `{"translations":[{"text": "тест","detectedLanguageCode":"ru"}]}`
-		if _, err := fmt.Fprint(w, response); err != nil {
-			t.Error(err)
+		if _, e := fmt.Fprint(w, response); e != nil {
+			t.Error(e)
 		}
 	}))
 	defer translationServer.Close()
@@ -237,7 +240,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 			params:      []string{"time"},
 			success:     true,
 			spellResult: "Spelling: \n\ttimee -> [time]",
-			trResult: "time()\n\tвремя (существительное)\n\tsyn: раз (), тайм ()\n\t" +
+			trResult: "time [taɪm] (noun)\n\tвремя (noun)\n\tsyn: раз (noun), момент (noun)\n\t" +
 				"mean: timing, fold, half\n\texamples: \n\t\t" +
 				"prehistoric time: доисторическое время\n\t\t" +
 				"hundredth time: сотый раз\n\t\ttime-slot: тайм-слот",
@@ -246,7 +249,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 			params:      []string{"en-ru time"},
 			success:     true,
 			spellResult: "Spelling: \n\ttimee -> [time]",
-			trResult: "time()\n\tвремя (существительное)\n\tsyn: раз (), тайм ()\n\t" +
+			trResult: "time [taɪm] (noun)\n\tвремя (noun)\n\tsyn: раз (noun), момент (noun)\n\t" +
 				"mean: timing, fold, half\n\texamples: \n\t\t" +
 				"prehistoric time: доисторическое время\n\t\t" +
 				"hundredth time: сотый раз\n\t\ttime-slot: тайм-слот",
@@ -255,7 +258,7 @@ func TestYtapi_GetTranslations(t *testing.T) {
 			params:      []string{"англ time"},
 			success:     true,
 			spellResult: "Spelling: \n\ttimee -> [time]",
-			trResult: "time()\n\tвремя (существительное)\n\tsyn: раз (), тайм ()\n\t" +
+			trResult: "time [taɪm] (noun)\n\tвремя (noun)\n\tsyn: раз (noun), момент (noun)\n\t" +
 				"mean: timing, fold, half\n\texamples: \n\t\t" +
 				"prehistoric time: доисторическое время\n\t\t" +
 				"hundredth time: сотый раз\n\t\ttime-slot: тайм-слот",
@@ -290,10 +293,10 @@ func TestYtapi_GetTranslations(t *testing.T) {
 		},
 	}
 	for i, v := range values {
-		sp, tr, err := y.GetTranslations(v.params)
-		if err != nil {
+		sp, tr, e := y.GetTranslations(v.params)
+		if e != nil {
 			if v.success {
-				t.Errorf("failed: %v", err)
+				t.Errorf("failed: %v", e)
 				continue
 			}
 		} else {

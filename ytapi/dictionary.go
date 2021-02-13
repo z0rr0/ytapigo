@@ -38,7 +38,7 @@ type JSONTrDictItem struct {
 
 // DictArticle is an internal type of DictionaryResponse.
 type DictArticle struct {
-	Pos  string           `json:"post"`
+	Pos  string           `json:"pos"`
 	Text string           `json:"text"`
 	Ts   string           `json:"ts"`
 	Tr   []JSONTrDictItem `json:"tr"`
