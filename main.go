@@ -26,8 +26,8 @@ var (
 	Version = "0.0.0"
 	// Revision is GIT revision number
 	Revision = "git:000000"
-	// Date is build date
-	Date = "2016-01-01_01:01:01UTC"
+	// BuildDate is build date
+	BuildDate = "2016-01-01_01:01:01UTC"
 	// GoVersion is runtime Go language version
 	GoVersion = runtime.Version()
 )
@@ -46,7 +46,7 @@ func main() {
 	config := flag.String("config", "", "configuration directory, default $HOME/.ytapigo")
 	flag.Parse()
 	if *version {
-		fmt.Printf("%v: %v %v %v %v\n", Name, Version, Revision, GoVersion, Date)
+		fmt.Printf("%v: %v %v %v %v\n", Name, Version, Revision, GoVersion, BuildDate)
 		flag.PrintDefaults()
 		return
 	}
