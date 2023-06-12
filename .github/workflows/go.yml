@@ -16,10 +16,10 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.20
+        go-version: 1.20.5
 
-#    - name: Build
-#      run: make build
+    - name: Build
+      run: make build
 
     - name: Test
-      run: make actions
+      run: make test
