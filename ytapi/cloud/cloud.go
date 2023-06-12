@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -54,7 +53,7 @@ type Token struct {
 
 // loadPrivateKey reads and parses RSA key file.
 func (a *Account) loadPrivateKey() (*rsa.PrivateKey, error) {
-	data, err := ioutil.ReadFile(a.KeyFile)
+	data, err := os.ReadFile(a.KeyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +130,7 @@ func getCachedToken(path string) (string, error) {
 	if f.ModTime().Add(TTL).Before(time.Now()) {
 		return "", nil
 	}
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
@@ -193,7 +192,7 @@ func Request(client *http.Client, data io.Reader, uri, bearer, userAgent string,
 		"done %v-%v [%v]: %v\n",
 		resp.Request.Method, resp.StatusCode, time.Since(start), resp.Request.URL,
 	)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("request status %v, can't read content: %v", resp.Status, err)
 	}

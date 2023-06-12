@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -40,14 +40,14 @@ const (
 var (
 	// ServiceURLs contains map of used API URLs
 	ServiceURLs = map[string]string{
-		"spelling":         "http://speller.yandex.net/services/spellservice.json/checkText",
+		"spelling":         "https://speller.yandex.net/services/spellservice.json/checkText",
 		"translate":        "https://translate.api.cloud.yandex.net/translate/v2/translate",
 		"dictionary":       "https://dictionary.yandex.net/api/v1/dicservice.json/lookup",
 		"translate_langs":  "https://translate.api.cloud.yandex.net/translate/v2/languages",
 		"dictionary_langs": "https://dictionary.yandex.net/api/v1/dicservice.json/getLangs",
 	}
 	loggerError = log.New(os.Stderr, fmt.Sprintf(traceMsg, "ERROR"), log.Ldate|log.Ltime|log.Lshortfile)
-	loggerDebug = log.New(ioutil.Discard, fmt.Sprintf(traceMsg, "DEBUG"), log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	loggerDebug = log.New(io.Discard, fmt.Sprintf(traceMsg, "DEBUG"), log.Ldate|log.Lmicroseconds|log.Lshortfile)
 )
 
 // Translator is an interface to prepare JSON translation response.
@@ -237,7 +237,7 @@ func readConfig(file string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func (ytg *Ytapi) Request(url string, params *url.Values) ([]byte, error) {
 		"done %v-%v [%v]: %v\n",
 		resp.Request.Method, resp.StatusCode, time.Since(start), resp.Request.URL,
 	)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +359,7 @@ func (ytg *Ytapi) getDictLanguageList(lc LangChecker, cache, uri string) error {
 	)
 	if cache != "" {
 		// try read cache file
-		body, err = ioutil.ReadFile(cache)
+		body, err = os.ReadFile(cache)
 		if err == nil {
 			err = json.Unmarshal(body, lc)
 			if err == nil {
@@ -385,7 +385,7 @@ func (ytg *Ytapi) getDictLanguageList(lc LangChecker, cache, uri string) error {
 		if err != nil {
 			loggerError.Printf("prepare cache: %v", err)
 		}
-		if err := ioutil.WriteFile(cache, body, 0600); err != nil {
+		if err := os.WriteFile(cache, body, 0600); err != nil {
 			loggerError.Printf("save cache: %v", err)
 		}
 	}
@@ -400,7 +400,7 @@ func (ytg *Ytapi) getTrLanguageList(lc LangChecker, cache, uri string) error {
 	)
 	if cache != "" {
 		// try read cache file
-		body, err = ioutil.ReadFile(cache)
+		body, err = os.ReadFile(cache)
 		if err == nil {
 			err = json.Unmarshal(body, lc)
 			if err == nil {
@@ -427,7 +427,7 @@ func (ytg *Ytapi) getTrLanguageList(lc LangChecker, cache, uri string) error {
 		if err != nil {
 			loggerError.Printf("prepare cache: %v", err)
 		}
-		if err := ioutil.WriteFile(cache, body, 0600); err != nil {
+		if err := os.WriteFile(cache, body, 0600); err != nil {
 			loggerError.Printf("save cache: %v", err)
 		}
 	}

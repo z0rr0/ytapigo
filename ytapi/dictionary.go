@@ -4,7 +4,6 @@
 
 // Package ytapi implements console text translation
 // method using Yandex web services.
-//
 package ytapi
 
 import (
@@ -112,12 +111,18 @@ func (lch *DictionaryLanguages) String() string {
 	return fmt.Sprintf("Dictionary languages:\n%v", strings.Join(*lch, ", "))
 }
 
-func (lch DictionaryLanguages) Len() int           { return len(lch) }
-func (lch DictionaryLanguages) Swap(i, j int)      { lch[i], lch[j] = lch[j], lch[i] }
-func (lch DictionaryLanguages) Less(i, j int) bool { return lch[i] < lch[j] }
+// Len returns a list of dictionary languages.
+func (lch *DictionaryLanguages) Len() int {
+	return len(*lch)
+}
 
 // Sort sorts dictionary languages.
-func (lch *DictionaryLanguages) Sort() { sort.Sort(lch) }
+func (lch *DictionaryLanguages) Sort() {
+	//sort.Sort(lch)
+	sort.Slice(*lch, func(i, j int) bool {
+		return (*lch)[i] < (*lch)[j]
+	})
+}
 
 // Contains is an implementation of Contains() method for DictionaryLanguages pointer (LangChecker interface).
 func (lch *DictionaryLanguages) Contains(s string) bool {

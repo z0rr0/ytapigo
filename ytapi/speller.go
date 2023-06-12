@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// SpellerItem is a type of a spell check (from JSON API response).
+// SpellerItem is a type of spell check (from JSON API response).
 type SpellerItem struct {
 	Word string   `json:"word"`
 	S    []string `json:"s"`

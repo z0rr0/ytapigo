@@ -55,8 +55,7 @@ func (tl *TranslateLanguage) String() string {
 	return fmt.Sprintf("%v - %v", tl.Code, tl.Name)
 }
 
-// String is an implementation of String() method for TranslateLanguages
-// pointer (LangChecker interface).
+// String is an implementation of String() method for TranslateLanguages pointer.
 func (ltr *TranslateLanguages) String() string {
 	codes := make([]string, ltr.Len())
 	for i, v := range ltr.Languages {
@@ -65,21 +64,16 @@ func (ltr *TranslateLanguages) String() string {
 	return fmt.Sprintf("Translation languages:\n%v\n%v", strings.Join(codes, ", "), ltr.Description())
 }
 
-func (ltr TranslateLanguages) Len() int {
+// Len return length of languages list.
+func (ltr *TranslateLanguages) Len() int {
 	return len(ltr.Languages)
-}
-
-func (ltr TranslateLanguages) Swap(i, j int) {
-	ltr.Languages[i], ltr.Languages[j] = ltr.Languages[j], ltr.Languages[i]
-}
-
-func (ltr TranslateLanguages) Less(i, j int) bool {
-	return ltr.Languages[i].Code < ltr.Languages[j].Code
 }
 
 // Sort sorts languages by code.
 func (ltr *TranslateLanguages) Sort() {
-	sort.Sort(ltr)
+	sort.Slice(ltr.Languages, func(i, j int) bool {
+		return ltr.Languages[i].Code < ltr.Languages[j].Code
+	})
 }
 
 func (ltr *TranslateLanguages) containsLanguage(s string) bool {
