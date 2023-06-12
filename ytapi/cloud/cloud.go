@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -66,13 +66,15 @@ func (a *Account) loadPrivateKey() (*rsa.PrivateKey, error) {
 
 // signedToken prepares JWT signed token.
 func (a *Account) signedToken() (string, error) {
-	issuedAt := time.Now()
-	token := jwt.NewWithClaims(ps256WithSaltLengthEqualsHash, jwt.StandardClaims{
+	issuedAt := time.Now().UTC()
+	clams := &jwt.RegisteredClaims{
 		Issuer:    a.ServiceAccountID,
-		IssuedAt:  issuedAt.Unix(),
-		ExpiresAt: issuedAt.Add(TTL).Unix(),
-		Audience:  URL,
-	})
+		IssuedAt:  jwt.NewNumericDate(issuedAt),
+		ExpiresAt: jwt.NewNumericDate(issuedAt.Add(TTL).UTC()),
+		Audience:  jwt.ClaimStrings{URL},
+	}
+	token := jwt.NewWithClaims(ps256WithSaltLengthEqualsHash, clams)
+
 	token.Header["kid"] = a.KeyID
 	privateKey, err := a.loadPrivateKey()
 	if err != nil {

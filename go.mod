@@ -1,5 +1,5 @@
 module github.com/z0rr0/ytapigo
 
-go 1.17
+go 1.20
 
-require github.com/golang-jwt/jwt/v4 v4.0.0
+require github.com/golang-jwt/jwt/v5 v5.0.0
