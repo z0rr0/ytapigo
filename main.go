@@ -16,10 +16,8 @@ import (
 	"github.com/z0rr0/ytapigo/ytapi"
 )
 
-const (
-	// Name is a programm name
-	Name = "Ytapi"
-)
+// Name is a program name.
+const Name = "Ytapi"
 
 var (
 	// Version is a version from GIT tags
