@@ -1,8 +1,3 @@
-// Copyright (c) 2021, Alexander Zaitsev <me@axv.email>. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package main is console text translation tool using Yandex web services.
 package main
 
 import (
