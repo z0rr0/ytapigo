@@ -1,0 +1,13 @@
+{
+  "user_agent": "ytapigo/3.0",
+  "proxy_url": "proxy like https://user:password@host:port",
+  "dictionary": "API dictionary key",
+  "auth_cache": "path to local token credentials JSON cache file, no cache if empty",
+  "debug": true,
+  "translation": {
+    "folder_id": "API translation folder ID",
+    "key_id": "API key ID",
+    "service_account_id": "API service account ID",
+    "key_file": "path to local auth PEM file"
+  }
+}

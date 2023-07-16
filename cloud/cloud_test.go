@@ -1,12 +1,7 @@
-// Copyright (c) 2023, Alexander Zaitsev <me@axv.email>. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package cloud contains WJT cloud methods.
-// Based on https://cloud.yandex.ru/docs/iam/operations/iam-token/create-for-sa
 package cloud
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -20,32 +15,29 @@ import (
 	"path"
 	"strings"
 	"testing"
-	"time"
 )
 
-const (
-	ua = "test/1.0"
-)
+const userAgent = "test/1.0"
 
-var (
-	timeout = time.Second
-	logger  = log.New(os.Stdout, "TEST", log.Ldate|log.Lmicroseconds|log.Lshortfile)
-)
+var logger = log.New(os.Stdout, "TEST ", log.Lmicroseconds|log.Lshortfile)
 
-func getKey(name string, t *testing.T) error {
+func generateKey(name string, t *testing.T) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return err
 	}
+
 	f, err := os.Create(name)
 	if err != nil {
 		return err
 	}
+
 	defer func() {
-		if err := f.Close(); err != nil {
-			t.Error(err)
+		if e := f.Close(); e != nil {
+			t.Error(e)
 		}
 	}()
+
 	privateKey := &pem.Block{
 		Type:  "PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(key),
@@ -58,6 +50,7 @@ func TestRequest(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
+
 		if _, err := fmt.Fprint(w, response); err != nil {
 			t.Error(err)
 		}
@@ -66,15 +59,18 @@ func TestRequest(t *testing.T) {
 
 	client := s.Client()
 	requestData := strings.NewReader(`{"jwt":"abc"}`)
-	data, err := Request(client, requestData, s.URL, "", ua, timeout, logger, logger)
+	ctx := context.Background()
+
+	data, err := Request(ctx, client, requestData, s.URL, "", userAgent, true, logger)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	token := &Token{}
-	err = json.Unmarshal(data, token)
-	if err != nil {
-		t.Error(err)
+	if err = json.Unmarshal(data, token); err != nil {
+		t.Fatal(err)
 	}
+
 	if iamt := token.IAMToken; iamt != tokenValue {
 		t.Errorf("failed token: %v != %v", iamt, tokenValue)
 	}
@@ -84,36 +80,40 @@ func TestAccount_SetIAMToken(t *testing.T) {
 	const tokenValue = "abc123"
 
 	fileName := path.Join(os.TempDir(), "ytapigo_test.pem")
-	err := getKey(fileName, t)
+	err := generateKey(fileName, t)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
-		if err := os.Remove(fileName); err != nil {
-			t.Error(err)
+		if e := os.Remove(fileName); e != nil {
+			t.Error(e)
 		}
 	}()
+
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response := fmt.Sprintf(`{"iamToken":"%s","expiresAt":"2019-02-15T01:09:43.418711Z"}`, tokenValue)
-		if _, err := fmt.Fprint(w, response); err != nil {
-			t.Error(err)
+
+		if _, e := fmt.Fprint(w, response); e != nil {
+			t.Error(e)
 		}
 	}))
 	defer s.Close()
 
 	client := s.Client()
+	ctx := context.Background()
 	account := &Account{
 		FolderID:         "123",
 		KeyID:            "456",
 		ServiceAccountID: "789",
 		KeyFile:          fileName,
 	}
-	URL = s.URL // overwrite default URL
-	err = account.SetIAMToken("", client, ua, timeout, logger, logger)
+
+	err = account.SetIAMToken(ctx, client, userAgent, logger, s.URL)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+
 	if account.IAMToken != tokenValue {
 		t.Errorf("failed token value: %v", account.IAMToken)
 	}

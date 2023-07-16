@@ -9,7 +9,7 @@ TARGET=yg
 all: test
 
 build:
-	go build -o $(TARGET) -ldflags "$(FLAG)" .
+	go build -o $(TARGET) -ldflags "$(LDFLAGS)" .
 
 lint: build
 	go vet ./...

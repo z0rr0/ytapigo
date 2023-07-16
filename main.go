@@ -6,18 +6,22 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
 
-	"github.com/z0rr0/ytapigo/ytapi"
+	"github.com/z0rr0/ytapigo/config"
+	"github.com/z0rr0/ytapigo/handle"
 )
 
 // Name is a program name.
-const Name = "Ytapi"
+const Name = "YtAPI"
 
 var (
 	// Version is a version from GIT tags
@@ -28,49 +32,61 @@ var (
 	BuildDate = "2016-01-01_01:01:01UTC"
 	// GoVersion is runtime Go language version
 	GoVersion = runtime.Version()
+
+	logger = log.New(io.Discard, "DEBUG: ", log.Lmicroseconds|log.Lshortfile)
 )
 
 func main() {
+	var (
+		debug      bool
+		version    bool
+		noCache    bool
+		direction  string
+		timeout    = 5 * time.Second
+		configFile = filepath.Join(os.Getenv("HOME"), ".ytapigo3", "config.json")
+		start      = time.Now()
+	)
+
 	defer func() {
+		logger.Printf("duration=%v\n", time.Since(start).Truncate(time.Millisecond))
+
 		if r := recover(); r != nil {
-			fmt.Printf("ERROR: %v\n", r)
+			if _, e := fmt.Fprintf(os.Stderr, "ERROR: %v\n", r); e != nil {
+				panic(e)
+			}
 			os.Exit(1)
 		}
 	}()
-	languages := flag.Bool("languages", false, "show available languages")
-	debug := flag.Bool("debug", false, "debug mode")
-	version := flag.Bool("version", false, "print version")
-	nocache := flag.Bool("nocache", false, "reset cache")
-	config := flag.String("config", "", "configuration directory, default $HOME/.ytapigo")
+
+	flag.BoolVar(&debug, "d", false, "debug mode")
+	flag.BoolVar(&version, "v", false, "print version")
+	flag.StringVar(&configFile, "c", configFile, "configuration file")
+	flag.BoolVar(&noCache, "r", false, "reset cache")
+	flag.DurationVar(&timeout, "t", timeout, "timeout for request")
+	flag.StringVar(
+		&direction, "g", "",
+		fmt.Sprintf("translation languages direction "+
+			"(empty - auto en/ru, ru/en, %q - detected lang to ru)", handle.AutoLanguageDetect,
+		),
+	)
+
 	flag.Parse()
-	if *version {
+	if version {
 		fmt.Printf("%v: %v %v %v %v\n", Name, Version, Revision, GoVersion, BuildDate)
 		flag.PrintDefaults()
 		return
 	}
-	configDir := *config
-	if configDir == "" {
-		configDir = filepath.Join(os.Getenv("HOME"), ".ytapigo")
-	}
-	ytg, err := ytapi.New(configDir, *nocache, *debug)
+
+	cfg, err := config.New(configFile, noCache, debug, logger)
 	if err != nil {
 		panic(err)
 	}
-	t := time.Now()
-	defer func() {
-		ytg.Duration(t)
-	}()
-	if *languages {
-		if langs, err := ytg.GetLanguages(); err != nil {
-			panic(err)
-		} else {
-			fmt.Println(langs)
-		}
-	} else {
-		if s, t, err := ytg.GetTranslations(flag.Args()); err != nil {
-			panic(err)
-		} else {
-			fmt.Printf("%v\n%v\n", s, t)
-		}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	y := handle.New(cfg)
+	if err = y.Run(ctx, direction, flag.Args()); err != nil {
+		panic(err)
 	}
 }
