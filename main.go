@@ -21,7 +21,7 @@ import (
 )
 
 // Name is a program name.
-const Name = "YtAPI"
+const Name = "YtAPIGo"
 
 var (
 	// Version is a version from GIT tags
