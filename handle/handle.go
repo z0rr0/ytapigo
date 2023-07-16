@@ -55,6 +55,14 @@ func (y *Handler) Run(ctx context.Context, direction string, params []string) er
 	return nil
 }
 
+// loadLanguages loads languages defined by dictionary or translation API will be used.
+func (y *Handler) loadLanguages(ctx context.Context) (result.Languages, error) {
+	if y.isDictionary {
+		return dictionary.LoadLanguages(ctx, y.client, y.config)
+	}
+	return translation.LoadLanguages(ctx, y.client, y.config)
+}
+
 // setLanguages detects language direction.
 func (y *Handler) setLanguages(ctx context.Context, direction string) error {
 	fromLanguage, toLanguage, err := y.detectLanguages(ctx, direction, y.text)
@@ -67,14 +75,7 @@ func (y *Handler) setLanguages(ctx context.Context, direction string) error {
 		return nil
 	}
 
-	var languages result.Languages
-
-	if y.isDictionary {
-		languages, err = dictionary.LoadLanguages(ctx, y.client, y.config)
-	} else {
-		languages, err = translation.LoadLanguages(ctx, y.client, y.config)
-	}
-
+	languages, err := y.loadLanguages(ctx)
 	if err != nil {
 		return fmt.Errorf("can not set languages: %w", err)
 	}
