@@ -1,4 +1,4 @@
-PROGRAM=YtapiGo
+PROGRAM=YtAPIGo
 TS=$(shell date -u -Iseconds)
 TAG=$(shell git tag | sort --version-sort | tail -1)
 COMMIT=$(shell git log --oneline | head -1)

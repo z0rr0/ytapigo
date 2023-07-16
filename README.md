@@ -1,4 +1,4 @@
-YtApiGo
+YtAPIGo
 =======
 
 [![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo)
