@@ -1,5 +1,5 @@
 PROGRAM=YtapiGo
-TS=$(shell date -u +"%F_%T")
+TS=$(shell date -u -Iseconds)
 TAG=$(shell git tag | sort --version-sort | tail -1)
 COMMIT=$(shell git log --oneline | head -1)
 VERSION=$(firstword $(COMMIT))
