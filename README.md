@@ -6,7 +6,7 @@ YtApiGo
 ![Version](https://img.shields.io/github/tag/z0rr0/ytapigo.svg)
 ![License](https://img.shields.io/github/license/z0rr0/ytapigo.svg)
 
-It is a program to translate and check spelling using the console, it based on [Yandex Translate API](https://cloud.yandex.ru/docs/translate/). 
+It is a program to translate and check spelling using the console, it based on [Yandex Translate API](https://cloud.yandex.com/en/docs/translate/).
 By default, UTF-8 encoding is used.
 
 A spell check is supported only for English, Russian and Ukrainian languages.
@@ -15,7 +15,7 @@ A spell check is supported only for English, Russian and Ukrainian languages.
 
 Build binary file **yg**: 
 
-```shell
+```
 make build
 
 ./yg -h
