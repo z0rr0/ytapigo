@@ -6,7 +6,8 @@ YtAPIGo
 ![Version](https://img.shields.io/github/tag/z0rr0/ytapigo.svg)
 ![License](https://img.shields.io/github/license/z0rr0/ytapigo.svg)
 
-It is a program to translate and check spelling using the console, it based on [Yandex Translate API](https://cloud.yandex.com/en/docs/translate/).
+It is a program to translate and check spelling using the console,
+it's based on [Yandex Translate API](https://cloud.yandex.com/en/docs/translate/).
 By default, UTF-8 encoding is used.
 
 A spell check is supported only for English, Russian and Ukrainian languages.
@@ -27,7 +28,7 @@ Usage of ./yg:
         translation languages direction (empty - auto en/ru, ru/en, "auto" - detected lang to ru)
   -r    reset cache
   -t duration
-        timeout for request (default 5s)
+        timeout for requests (default 5s)
   -v    print version
 ```
 
@@ -62,7 +63,7 @@ lion [ˈlaɪən] (adjective)
 API keys are required for using Yandex Translate API.
 
 Users should get API keys before *ytapigo* using (see links below).
-By default, configuration file will be searched in $HOME/.ytapigo2/config.json 
+By default, configuration file will be searched in `$HOME/.ytapigo3/config.json`
 (example [cfg.example.json](https://github.com/z0rr0/ytapigo/blob/master/cfg.example.json)).
 
 ```json
