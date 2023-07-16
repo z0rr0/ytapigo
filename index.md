@@ -1,68 +1,92 @@
-YtapiGo
+YtAPIGo
 =======
 
 [![GoDoc](https://godoc.org/github.com/z0rr0/ytapigo?status.svg)](https://godoc.org/github.com/z0rr0/ytapigo)
 ![Go](https://github.com/z0rr0/ytapigo/workflows/Go/badge.svg)
+![Version](https://img.shields.io/github/tag/z0rr0/ytapigo.svg)
+![License](https://img.shields.io/github/license/z0rr0/ytapigo.svg)
 
-It is a program to translate and check spelling using the console, it based on [Yandex Translate API](http://api.yandex.com/translate/). By default UTF-8 encoding is used.
-
-It's a clone of the project [Ytapi](http://z0rr0.github.io/ytapi/) but on the [Go programming language](http://golang.org/). This is created as a package/library, but it can be used as a separate program (see main.go.example), the [documentation](http://godoc.org/github.com/z0rr0/ytapigo) contains details about all methods and variables.
+It is a program to translate and check spelling using the console, it based on [Yandex Translate API](https://cloud.yandex.ru/docs/translate/).
+By default, UTF-8 encoding is used.
 
 A spell check is supported only for English, Russian and Ukrainian languages.
 
 ### Usage
 
+Build binary file **yg**:
 
-See example in [main.go.example](https://github.com/z0rr0/ytapigo/blob/master/main.go.example).
+```shell
+make build
 
-The latest versions of binary files are available in [Releases](https://github.com/z0rr0/ytapigo/releases)
+./yg -h
+Usage of ./yg:
+  -c string
+        configuration file (default "$HOME/.ytapigo3/config.json")
+  -d    debug mode
+  -g string
+        translation languages direction (empty - auto en/ru, ru/en, "auto" - detected lang to ru)
+  -r    reset cache
+  -t duration
+        timeout for request (default 5s)
+  -v    print version
+```
+
 
 Usage:
 
 ```
-chmod u+x ytapigo
-./ytapigo en-fr Hello dear fried!
-# output: Bonjour chers frit!
+./yg -g en-fr Hello dear fried!  
+Spelling: 
+        fried -> [friend friends fred]
+Bonjour chère fried!
 
-./ytapigo en-ru lion
-lion [ˈlaɪən] ()
+
+./yg lion
+lion [ˈlaɪən] (noun)
         лев (noun)
-        syn: львенок (noun)
-        mean: lev, cub
-        examples:
-                sea lion: морской лев
-lion [ˈlaɪən] ()
+        syn: львица (noun), львенок (noun)
+        mean: lev, lioness, cub
+lion [ˈlaɪən] (adjective)
         львиный (adjective)
-        examples:
-                lion's share: львиная доля
+        
+./yg лев 
+лев(noun)
+        lion (noun)
+        Lev (noun)
+        syn: Leo (noun)
+        mean: лео        
 ```
-
-### Dependencies
-
-Standard [Go library](http://golang.org/pkg/).
 
 ### API keys
 
-Users should get API KEYs before an using this program, these values have to be written to a file **$HOME/.ytapigo.json** (see the example `ytapigo_example.json`). **APIlangs** is a set of [available translate directions](https://tech.yandex.ru/translate/doc/dg/concepts/langs-docpage/), each one can have a list of possible user's aliases.
+API keys are required for using Yandex Translate API.
 
-```
+Users should get API keys before *ytapigo* using (see links below).
+By default, configuration file will be searched in $HOME/.ytapigo2/config.json
+(example [cfg.example.json](https://github.com/z0rr0/ytapigo/blob/master/cfg.example.json)).
+
+```json
 {
-  "APItr": "some key value",
-  "APIdict": "some key value",
-  "Aliases": {                      // User's languages aliases
-    "en-ru": ["en", "англ", "e"],
-    "ru-en": ["ru", "ру" "r"]
-  },
-  "Default": "en-ru",               // default translation direction
-  "Timeout": 5                      // connection timeout, default 10 seconds
+  "user_agent": "ytapigo/3.0",
+  "proxy_url": "proxy like https://user:password@host:port",
+  "dictionary": "API dictionary key",
+  "auth_cache": "path to local token credentials JSON cache file, no cache if empty",
+  "debug": true,
+  "translation": {
+    "folder_id": "API translation folder ID",
+    "key_id": "API key ID",
+    "service_account_id": "API service account ID",
+    "key_file": "path to local auth PEM file"
+  }
 }
 ```
 
-1. **APItr** - API KEY for [Yandex Translate](http://api.yandex.com/key/form.xml?service=trnsl)
-2. **APIdict** - API KEY for [Yandex Dictionary](http://api.yandex.com/key/form.xml?service=dict)
+1. **translation** - documentation [Yandex Translate](https://cloud.yandex.com/en/docs/translate/)
+2. **dictionary** - documentation [Yandex Dictionary](https://tech.yandex.com/dictionary/)
 
-It was implemented using the services:
+Also it uses [Yandex Speller](http://api.yandex.ru/speller/).
 
-* [Yandex Dictionary](http://api.yandex.com/dictionary/)
-* [Yandex Translate](http://api.yandex.com/translate/)
-* [Yandex Speller](http://api.yandex.ru/speller/)
+## License
+
+This source code is governed by a BSD license
+that can be found in the [LICENSE](https://github.com/z0rr0/ytapigo/blob/master/LICENSE) file.
