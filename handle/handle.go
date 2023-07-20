@@ -35,7 +35,7 @@ func New(cfg *config.Config) *Handler {
 func (y *Handler) Run(ctx context.Context, direction string, params []string) error {
 	var err error
 
-	y.text, y.isDictionary, err = buildText(params)
+	y.text, y.isDictionary, err = buildTextWithDictionary(params)
 	if err != nil {
 		return err
 	}
@@ -130,8 +130,7 @@ func (y *Handler) translation(ctx context.Context) (result.Translation, error) {
 }
 
 // buildText parses and builds text from parameters.
-// It returns result text, true if it is a dictionary request and error.
-func buildText(params []string) (string, bool, error) {
+func buildText(params []string) (string, uint) {
 	var (
 		builder strings.Builder
 		count   uint
@@ -147,10 +146,18 @@ func buildText(params []string) (string, bool, error) {
 		}
 	}
 
-	if count == 0 {
+	return strings.TrimSuffix(builder.String(), " "), count
+}
+
+// buildTextWithDictionary parses and builds text from parameters.
+// It returns result text and true if it is a dictionary request and error.
+func buildTextWithDictionary(params []string) (string, bool, error) {
+	text, count := buildText(params)
+
+	if text == "" {
 		// not found any words for translation
 		return "", false, fmt.Errorf("empty text")
 	}
 
-	return strings.TrimSuffix(builder.String(), " "), count == 1, nil
+	return text, count == 1, nil
 }

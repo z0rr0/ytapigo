@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/z0rr0/ytapigo/cloud"
@@ -173,7 +174,7 @@ func TestBuildText(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		text, isDictionary, err := buildText(test.params)
+		text, isDictionary, err := buildTextWithDictionary(test.params)
 		withoutError := !test.withError
 
 		if err != nil && withoutError {
@@ -188,4 +189,48 @@ func TestBuildText(t *testing.T) {
 			t.Errorf("expected isDictionary %v, but got %v", test.isDictionary, isDictionary)
 		}
 	}
+}
+
+func BenchmarkBuildText(b *testing.B) {
+	params := []string{"This is a sample sentence", "This is another sentence", "And this is yet another one"}
+	expected := "This is a sample sentence This is another sentence And this is yet another one"
+
+	for n := 0; n < b.N; n++ {
+		result, _ := buildText(params)
+
+		if result != expected {
+			b.Errorf("expected text %q, but got %q", expected, result)
+		}
+	}
+}
+
+func FuzzBuildText(f *testing.F) {
+	testCases := []string{
+		"",
+		" :: ",
+		"Hello world",
+		"This is a sample sentence",
+		"This is a sample sentence::This is another sentence",
+		"This is a sample sentence::This is another sentence::And this is yet another one",
+	}
+
+	for _, tc := range testCases {
+		f.Add(tc)
+	}
+
+	f.Fuzz(func(t *testing.T, args string) {
+		params := strings.Split(args, "::")
+		text, count := buildText(params)
+
+		if count != 0 {
+			if text == "" {
+				t.Errorf("expected non-empty text count=%d, but got %q", count, text)
+			}
+
+		} else {
+			if text != "" {
+				t.Errorf("expected empty text, but got %q", text)
+			}
+		}
+	})
 }
