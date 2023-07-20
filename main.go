@@ -1,8 +1,3 @@
-// Copyright (c) 2021, Alexander Zaitsev <me@axv.email>. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package main is console text translation tool using Yandex web services.
 package main
 
 import (
@@ -62,11 +57,11 @@ func main() {
 	flag.BoolVar(&version, "v", false, "print version")
 	flag.StringVar(&configFile, "c", configFile, "configuration file")
 	flag.BoolVar(&noCache, "r", false, "reset cache")
-	flag.DurationVar(&timeout, "t", timeout, "timeout for request")
+	flag.DurationVar(&timeout, "t", timeout, "timeout for requests")
 	flag.StringVar(
 		&direction, "g", "",
-		fmt.Sprintf("translation languages direction "+
-			"(empty - auto en/ru, ru/en, %q - detected lang to ru)", handle.AutoLanguageDetect,
+		fmt.Sprintf("translation direction "+
+			"(empty - auto en/ru, ru/en, %q - auto-detected language to ru)", handle.AutoLanguageDetect,
 		),
 	)
 
