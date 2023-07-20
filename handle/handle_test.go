@@ -226,7 +226,6 @@ func FuzzBuildText(f *testing.F) {
 			if text == "" {
 				t.Errorf("expected non-empty text count=%d, but got %q", count, text)
 			}
-
 		} else {
 			if text != "" {
 				t.Errorf("expected empty text, but got %q", text)
