@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/z0rr0/ytapigo/cloud"
@@ -72,7 +73,7 @@ func TestNew(t *testing.T) {
 	}
 	defer deleteFile(configFile, t)
 
-	cfg, err := New(configFile, true, true, logger)
+	cfg, err := New(configFile, "", "", true, true, logger)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +118,7 @@ func TestNew(t *testing.T) {
 func TestNew_NoFile(t *testing.T) {
 	configFile := path.Join(os.TempDir(), "ytapigo_config_not_exists.toml")
 
-	_, err := New(configFile, true, true, logger)
+	_, err := New(configFile, "", "", true, true, logger)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -202,5 +203,124 @@ func TestConfig_InitCachedToken(t *testing.T) {
 
 	if cfg.Translation.IAMToken != "abc123" {
 		t.Errorf("unexpected IAM token: %s", cfg.Translation.IAMToken)
+	}
+}
+
+func TestConfig_setFiles(t *testing.T) {
+	const testDir = "ytapigo_test_set_files"
+	var (
+		tmpDir        = os.TempDir()
+		testConfigDir = path.Join(tmpDir, testDir, "config")
+		testCacheDir  = path.Join(tmpDir, testDir, "cache")
+	)
+	tmpFile, err := os.CreateTemp(testCacheDir, "ytapigo_caceh_*.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cleanFunc := func() {
+		if e := os.RemoveAll(testDir); e != nil {
+			t.Fatal(e)
+		}
+	}
+
+	if err = os.MkdirAll(testConfigDir, 0750); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.MkdirAll(testCacheDir, 0750); err != nil {
+		t.Fatal(err)
+	}
+
+	// clean before and after tests
+	cleanFunc()
+	defer cleanFunc()
+
+	testCases := []struct {
+		name      string
+		configDir string
+		cacheDir  string
+		keyFile   string
+		cacheFile string
+		expected  [2]string // config and cache files paths
+		err       string
+	}{
+		{
+			name:      "empty",
+			keyFile:   "key.json",
+			cacheFile: "cache.json",
+			expected:  [2]string{"key.json", "cache.json"},
+		},
+		{
+			name:      "abs_paths",
+			configDir: testConfigDir,
+			cacheDir:  testCacheDir,
+			keyFile:   path.Join(tmpDir, "abs_path_ytapigo", "key.json"),
+			cacheFile: path.Join(tmpDir, "abs_path_ytapigo", "cache.json"),
+			expected: [2]string{
+				path.Join(tmpDir, "abs_path_ytapigo", "key.json"),
+				path.Join(tmpDir, "abs_path_ytapigo", "cache.json"),
+			},
+		},
+		{
+			name:      "empty_cache",
+			configDir: testConfigDir,
+			cacheDir:  testCacheDir,
+			keyFile:   path.Join(tmpDir, "abs_path_ytapigo", "key.json"),
+			cacheFile: "",
+			expected:  [2]string{path.Join(tmpDir, "abs_path_ytapigo", "key.json"), ""},
+		},
+		{
+			name:      "set_all",
+			configDir: testConfigDir,
+			cacheDir:  testCacheDir,
+			keyFile:   "key.json",
+			cacheFile: "cache.json",
+			expected: [2]string{
+				path.Join(testConfigDir, "key.json"),
+				path.Join(testCacheDir, "cache.json"),
+			},
+		},
+		{
+			name:      "cache_is_not_dir",
+			configDir: testConfigDir,
+			cacheDir:  tmpFile.Name(),
+			keyFile:   "key.json",
+			cacheFile: "cache.json",
+			err:       "cache is not a directory: ",
+		},
+	}
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{
+				Translation: cloud.Account{KeyFile: tc.keyFile},
+				AuthCache:   tc.cacheFile,
+			}
+
+			tcErr := cfg.setFiles(tc.configDir, tc.cacheDir)
+			if tcErr != nil {
+				if tc.err == "" {
+					t.Errorf("unexpected error: %v", tcErr)
+				} else if e := tcErr.Error(); !strings.HasPrefix(e, tc.err) {
+					t.Errorf("not match error: %q, but expected %q", e, tc.err)
+				}
+				return
+			}
+
+			// no error from tested function
+			if tc.err != "" {
+				t.Errorf("expected error: %q", tc.err)
+				return
+			}
+
+			// no error and no expected error
+			if tc.expected[0] != cfg.Translation.KeyFile {
+				t.Errorf("unexpected key file: %q", cfg.Translation.KeyFile)
+			}
+
+			if tc.expected[1] != cfg.AuthCache {
+				t.Errorf("unexpected cache file: %q", cfg.AuthCache)
+			}
+		})
 	}
 }

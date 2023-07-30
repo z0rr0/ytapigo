@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/z0rr0/ytapigo/config"
@@ -33,13 +34,12 @@ var (
 
 func main() {
 	var (
-		debug      bool
-		version    bool
-		noCache    bool
-		direction  string
-		timeout    = 5 * time.Second
-		configFile = filepath.Join(os.Getenv("HOME"), ".ytapigo3", "config.json")
-		start      = time.Now()
+		debug     bool
+		version   bool
+		noCache   bool
+		direction string
+		timeout   = 5 * time.Second
+		start     = time.Now()
 	)
 
 	defer func() {
@@ -52,6 +52,12 @@ func main() {
 			os.Exit(1)
 		}
 	}()
+
+	configDir, cacheDir, err := defaultDirectories()
+	if err != nil {
+		panic(err)
+	}
+	configFile := filepath.Join(configDir, "config.json")
 
 	flag.BoolVar(&debug, "d", false, "debug mode")
 	flag.BoolVar(&version, "v", false, "print version")
@@ -72,10 +78,14 @@ func main() {
 		return
 	}
 
-	cfg, err := config.New(configFile, noCache, debug, logger)
+	cfg, err := config.New(configFile, configDir, cacheDir, noCache, debug, logger)
 	if err != nil {
 		panic(err)
 	}
+
+	cfg.Logger.Printf("configuration"+
+		"\n\tCONFIG:\t%v\n\tKEY:\t%v\n\tCACHE:\t%v", configFile, cfg.Translation.KeyFile, cfg.AuthCache,
+	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -84,4 +94,25 @@ func main() {
 	if err = y.Run(ctx, direction, flag.Args()); err != nil {
 		panic(err)
 	}
+}
+
+// defaultDirectories returns default configuration and cache directories.
+func defaultDirectories() (string, string, error) {
+	var (
+		configDir string
+		cacheDir  string
+		err       error
+		appFolder = strings.ToLower(Name)
+	)
+
+	if configDir, err = os.UserConfigDir(); err != nil {
+		return "", "", err
+	}
+	configDir = filepath.Join(configDir, appFolder)
+
+	if cacheDir, err = os.UserCacheDir(); err != nil {
+		return "", "", err
+	}
+
+	return configDir, filepath.Join(cacheDir, appFolder), nil
 }
