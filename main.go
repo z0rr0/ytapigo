@@ -43,7 +43,7 @@ func main() {
 	)
 
 	defer func() {
-		logger.Printf("duration=%v\n", time.Since(start).Truncate(time.Millisecond))
+		logger.Printf("total duration %v\n", time.Since(start).Truncate(time.Millisecond))
 
 		if r := recover(); r != nil {
 			if _, e := fmt.Fprintf(os.Stderr, "ERROR: %v\n", r); e != nil {
