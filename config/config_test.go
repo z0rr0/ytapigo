@@ -212,11 +212,8 @@ func TestConfig_setFiles(t *testing.T) {
 		tmpDir        = os.TempDir()
 		testConfigDir = path.Join(tmpDir, testDir, "config")
 		testCacheDir  = path.Join(tmpDir, testDir, "cache")
+		err           error
 	)
-	tmpFile, err := os.CreateTemp(testCacheDir, "ytapigo_caceh_*.json")
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	cleanFunc := func() {
 		if e := os.RemoveAll(testDir); e != nil {
@@ -228,6 +225,10 @@ func TestConfig_setFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err = os.MkdirAll(testCacheDir, 0750); err != nil {
+		t.Fatal(err)
+	}
+	tmpFile, err := os.CreateTemp(testCacheDir, "ytapigo_caceh_*.json")
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -297,11 +298,11 @@ func TestConfig_setFiles(t *testing.T) {
 				AuthCache:   tc.cacheFile,
 			}
 
-			tcErr := cfg.setFiles(tc.configDir, tc.cacheDir)
-			if tcErr != nil {
+			err := cfg.setFiles(tc.configDir, tc.cacheDir)
+			if err != nil {
 				if tc.err == "" {
-					t.Errorf("unexpected error: %v", tcErr)
-				} else if e := tcErr.Error(); !strings.HasPrefix(e, tc.err) {
+					t.Errorf("unexpected error: %v", err)
+				} else if e := err.Error(); !strings.HasPrefix(e, tc.err) {
 					t.Errorf("not match error: %q, but expected %q", e, tc.err)
 				}
 				return
