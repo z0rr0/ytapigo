@@ -22,7 +22,7 @@ make build
 ./yg -h
 Usage of ./yg:
   -c string
-        configuration file (default "$HOME/.ytapigo3/config.json")
+        configuration file (default "<USER_CONFIG_DIR>/ytapigo/config.json")
   -d    debug mode
   -g string
         translation languages direction (empty - auto en/ru, ru/en, "auto" - detected lang to ru)
@@ -63,7 +63,7 @@ lion [ˈlaɪən] (adjective)
 API keys are required for using Yandex Translate API.
 
 Users should get API keys before *ytapigo* using (see links below).
-By default, configuration file will be searched in `$HOME/.ytapigo3/config.json`
+By default, configuration file will be searched in [user config directory](https://golang.org/pkg/os/#UserConfigDir).
 (example [cfg.example.json](https://github.com/z0rr0/ytapigo/blob/master/cfg.example.json)).
 
 ```json
