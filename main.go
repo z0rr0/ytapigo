@@ -106,13 +106,12 @@ func defaultDirectories() (string, string, error) {
 	)
 
 	if configDir, err = os.UserConfigDir(); err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("user config dir: %v", err)
 	}
-	configDir = filepath.Join(configDir, appFolder)
 
 	if cacheDir, err = os.UserCacheDir(); err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("user cache dir: %v", err)
 	}
 
-	return configDir, filepath.Join(cacheDir, appFolder), nil
+	return filepath.Join(configDir, appFolder), filepath.Join(cacheDir, appFolder), nil
 }
