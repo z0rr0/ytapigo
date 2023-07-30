@@ -64,6 +64,9 @@ func New(fileName, configDir, cacheDir string, noCache, debug bool, logger *log.
 }
 
 func (c *Config) setLogger(logger *log.Logger, debug bool) {
+	c.Lock()
+	defer c.Unlock()
+
 	if debug || c.Debug {
 		logger.SetOutput(os.Stdout)
 	}
@@ -72,6 +75,9 @@ func (c *Config) setLogger(logger *log.Logger, debug bool) {
 
 // setFiles sets paths for key file and auth cache.
 func (c *Config) setFiles(configDir, cacheDir string) error {
+	c.Lock()
+	defer c.Unlock()
+
 	if !filepath.IsAbs(c.Translation.KeyFile) {
 		c.Translation.KeyFile = filepath.Join(configDir, c.Translation.KeyFile)
 	}
@@ -102,6 +108,9 @@ func (c *Config) setFiles(configDir, cacheDir string) error {
 
 // setProxy sets HTTP proxy or uses environment variables.
 func (c *Config) setProxy() error {
+	c.Lock()
+	defer c.Unlock()
+
 	if c.ProxyURL != "" {
 		u, err := url.Parse(c.ProxyURL)
 

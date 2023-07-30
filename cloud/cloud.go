@@ -49,11 +49,11 @@ type Token struct {
 func (a *Account) loadPrivateKey() (*rsa.PrivateKey, error) {
 	data, err := os.ReadFile(a.KeyFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read key file: %w", err)
 	}
 	rsaPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM(data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse key file: %w", err)
 	}
 	return rsaPrivateKey, nil
 }

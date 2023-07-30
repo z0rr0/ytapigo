@@ -16,7 +16,7 @@ type Cache struct {
 // readCachedToken reads cached token from file.
 func readCachedToken(fileName string) (string, error) {
 	if fileName == "" {
-		return "", nil
+		return "", nil // no file name, no cache
 	}
 	data, err := os.ReadFile(fileName)
 	if err != nil {
@@ -48,7 +48,7 @@ func readCachedToken(fileName string) (string, error) {
 // writeCachedToken writes token to a cache file.
 func writeCachedToken(fileName, token string, expiresAt time.Time) error {
 	if fileName == "" {
-		return nil // no cache
+		return nil // no file name, no cache
 	}
 
 	cache := &Cache{Token: token, Expired: expiresAt.Format(time.DateTime)}
