@@ -118,13 +118,14 @@ func TestHandler_Run(t *testing.T) {
 			name:      "dictionary_err",
 			direction: "de-fr",
 			params:    []string{"time"},
-			error:     "unknown language direction: de -> fr",
+			error:     "unknown language direction: de -> fr\nDictionary languages:\nen-en, en-ru",
 		},
 		{
 			name:      "translation_err",
 			direction: "de-fr",
 			params:    []string{"time to start"},
-			error:     "unknown language direction: de -> fr",
+			error: "unknown language direction: de -> fr\nTranslation languages:\nru, en\n" +
+				"ru - Russian              en - English             ",
 		},
 	}
 

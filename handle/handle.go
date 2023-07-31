@@ -81,7 +81,7 @@ func (y *Handler) setLanguages(ctx context.Context, direction string) error {
 	}
 
 	if !languages.Contains(fromLanguage, toLanguage) {
-		return fmt.Errorf("unknown language direction: %s -> %s", fromLanguage, toLanguage)
+		return fmt.Errorf("unknown language direction: %s -> %s\n%v", fromLanguage, toLanguage, languages.String())
 	}
 
 	y.fromLanguage, y.toLanguage = fromLanguage, toLanguage
