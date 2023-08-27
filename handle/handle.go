@@ -1,9 +1,11 @@
 package handle
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/z0rr0/ytapigo/config"
@@ -129,8 +131,26 @@ func (y *Handler) translation(ctx context.Context) (result.Translation, error) {
 	return translation.Translate(ctx, y.client, y.config, request)
 }
 
+// stdInText reads text from stdin.
+func stdInText(b strings.Builder) (string, uint, error) {
+	var count uint
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for scanner.Scan() {
+		b.WriteString(scanner.Text())
+		b.WriteString(" ")
+		count++
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", 0, err
+	}
+
+	return strings.TrimSpace(b.String()), count, nil
+}
+
 // buildText parses and builds text from parameters.
-func buildText(params []string) (string, uint) {
+func buildText(params []string) (string, uint, error) {
 	var (
 		builder strings.Builder
 		count   uint
@@ -146,13 +166,21 @@ func buildText(params []string) (string, uint) {
 		}
 	}
 
-	return strings.TrimSuffix(builder.String(), " "), count
+	if count > 0 {
+		return strings.TrimSuffix(builder.String(), " "), count, nil
+	}
+
+	// try to read text from stdin
+	return stdInText(builder)
 }
 
 // buildTextWithDictionary parses and builds text from parameters.
 // It returns result text and true if it is a dictionary request and error.
 func buildTextWithDictionary(params []string) (string, bool, error) {
-	text, count := buildText(params)
+	text, count, err := buildText(params)
+	if err != nil {
+		return "", false, err
+	}
 
 	if text == "" {
 		// not found any words for translation

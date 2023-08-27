@@ -197,7 +197,7 @@ func BenchmarkBuildText(b *testing.B) {
 	expected := "This is a sample sentence This is another sentence And this is yet another one"
 
 	for n := 0; n < b.N; n++ {
-		result, _ := buildText(params)
+		result, _, _ := buildText(params)
 
 		if result != expected {
 			b.Errorf("expected text %q, but got %q", expected, result)
@@ -221,7 +221,11 @@ func FuzzBuildText(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, args string) {
 		params := strings.Split(args, "::")
-		text, count := buildText(params)
+		text, count, err := buildText(params)
+
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		if count != 0 {
 			if text == "" {
