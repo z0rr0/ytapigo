@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/z0rr0/ytapigo/cloud"
@@ -139,102 +138,4 @@ func TestHandler_Run(t *testing.T) {
 			continue
 		}
 	}
-}
-
-func TestBuildText(t *testing.T) {
-	tests := []struct {
-		params       []string
-		expected     string
-		isDictionary bool
-		withError    bool
-	}{
-		{withError: true},
-		{params: []string{}, withError: true},
-		{
-			params:   []string{"Hello", "world"},
-			expected: "Hello world",
-		},
-		{
-			params:   []string{"This", "is", "a", "test"},
-			expected: "This is a test",
-		},
-		{
-			params:   []string{" This", "  is\n", " \ta ", " test   "},
-			expected: "This is a test",
-		},
-		{
-			params:       []string{"  ", "test"},
-			expected:     "test",
-			isDictionary: true,
-		},
-		{
-			params:       []string{"  ", "  book ", "   \n"},
-			expected:     "book",
-			isDictionary: true,
-		},
-	}
-
-	for _, test := range tests {
-		text, isDictionary, err := buildTextWithDictionary(test.params)
-		withoutError := !test.withError
-
-		if err != nil && withoutError {
-			t.Errorf("unexpected error: %v", err)
-		}
-
-		if withoutError && text != test.expected {
-			t.Errorf("expected text %q, but got %q", test.expected, text)
-		}
-
-		if withoutError && isDictionary != test.isDictionary {
-			t.Errorf("expected isDictionary %v, but got %v", test.isDictionary, isDictionary)
-		}
-	}
-}
-
-func BenchmarkBuildText(b *testing.B) {
-	params := []string{"This is a sample sentence", "This is another sentence", "And this is yet another one"}
-	expected := "This is a sample sentence This is another sentence And this is yet another one"
-
-	for n := 0; n < b.N; n++ {
-		result, _, _ := buildText(params)
-
-		if result != expected {
-			b.Errorf("expected text %q, but got %q", expected, result)
-		}
-	}
-}
-
-func FuzzBuildText(f *testing.F) {
-	testCases := []string{
-		"",
-		" :: ",
-		"Hello world",
-		"This is a sample sentence",
-		"This is a sample sentence::This is another sentence",
-		"This is a sample sentence::This is another sentence::And this is yet another one",
-	}
-
-	for _, tc := range testCases {
-		f.Add(tc)
-	}
-
-	f.Fuzz(func(t *testing.T, args string) {
-		params := strings.Split(args, "::")
-		text, count, err := buildText(params)
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if count != 0 {
-			if text == "" {
-				t.Errorf("expected non-empty text count=%d, but got %q", count, text)
-			}
-		} else {
-			if text != "" {
-				t.Errorf("expected empty text, but got %q", text)
-			}
-		}
-	})
 }

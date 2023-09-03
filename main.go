@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/z0rr0/ytapigo/arguments"
 	"github.com/z0rr0/ytapigo/config"
 	"github.com/z0rr0/ytapigo/handle"
 )
@@ -87,11 +88,16 @@ func main() {
 		"\n\tCONFIG:\t%v\n\tKEY:\t%v\n\tCACHE:\t%v", configFile, cfg.Translation.KeyFile, cfg.AuthCache,
 	)
 
+	params, err := arguments.Build(flag.Args(), os.Stdin)
+	if err != nil {
+		panic(err)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	y := handle.New(cfg)
-	if err = y.Run(ctx, direction, flag.Args()); err != nil {
+	if err = y.Run(ctx, direction, params); err != nil {
 		panic(err)
 	}
 }
