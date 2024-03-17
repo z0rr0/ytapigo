@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -18,7 +19,10 @@ func readCachedToken(fileName string) (string, error) {
 	if fileName == "" {
 		return "", nil // no file name, no cache
 	}
+
+	fileName = filepath.Clean(fileName)
 	data, err := os.ReadFile(fileName)
+
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", nil // no cache, probably first run

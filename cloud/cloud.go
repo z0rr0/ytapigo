@@ -22,7 +22,7 @@ const (
 	TTL = time.Hour
 
 	// TokenURL is URL for authentication requests.
-	TokenURL = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
+	TokenURL = "https://iam.api.cloud.yandex.net/iam/v1/tokens" // #nosec G101 - no credentials here
 )
 
 var ps256WithSaltLengthEqualsHash = &jwt.SigningMethodRSAPSS{

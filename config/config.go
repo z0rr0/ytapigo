@@ -31,7 +31,9 @@ type Config struct {
 
 // New reads configuration file.
 func New(fileName, configDir, cacheDir string, noCache, debug bool, logger *log.Logger) (*Config, error) {
+	fileName = filepath.Clean(fileName)
 	data, err := os.ReadFile(fileName)
+
 	if err != nil {
 		return nil, fmt.Errorf("read config file: %w", err)
 	}

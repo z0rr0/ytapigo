@@ -11,8 +11,18 @@ all: test
 build:
 	go build -o $(TARGET) -ldflags "$(LDFLAGS)" .
 
-lint: build
-	go vet ./...
+fmt:
+	gofmt -d .
+
+check_fmt:
+	@test -z "`gofmt -l .`" || { echo "ERROR: failed gofmt, for more details run - make fmt"; false; }
+	@-echo "gofmt successful"
+
+lint: build check_fmt
+	go vet $(PWD)/...
+	-golangci-lint run $(PWD)/...
+	-staticcheck $(PWD)/...
+	-gosec $(PWD)/...
 
 test: lint
 	go test -race -cover ./...
@@ -30,4 +40,5 @@ linux:
 	env GOOS=linux GOARCH=amd64 go build -o $(TARGET) -ldflags "$(LDFLAGS)" .
 
 clean:
-	rm $(TARGET)
+	rm -f $(PWD)/$(TARGET)
+	find ./ -type f -name "*.out" -delete
