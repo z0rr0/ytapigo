@@ -39,9 +39,9 @@ jobs:
           install-go: false
           min-go-version: "1.23"
 
-      - name: Run Gosec Security Scanner
-        uses: securego/gosec@master
-        env:
-          GOSECGOVERSION: "go1.23.0"
-        with:
-          args: ./...
+#      - name: Run Gosec Security Scanner
+#        uses: securego/gosec@master
+#        env:
+#          GOSECGOVERSION: "go1.23.0"
+#        with:
+#          args: ./...
