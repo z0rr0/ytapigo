@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/z0rr0/ytapigo/config"
@@ -36,8 +37,8 @@ func knowLanguages(lang ...string) bool {
 		return false
 	}
 
-	for _, l := range lang {
-		if _, ok := autoAllowedLanguages[l]; !ok {
+	for lg := range slices.Values(lang) {
+		if _, ok := autoAllowedLanguages[lg]; !ok {
 			return false
 		}
 	}

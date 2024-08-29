@@ -3,6 +3,7 @@ package result
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 )
 
@@ -42,8 +43,8 @@ func orderedTranslations(items []Item) []Translation {
 	})
 
 	translations := make([]Translation, 0, len(items))
-	for i := range items {
-		translations = append(translations, items[i].Translation)
+	for item := range slices.Values(items) {
+		translations = append(translations, item.Translation)
 	}
 
 	return translations

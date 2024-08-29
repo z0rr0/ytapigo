@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/z0rr0/ytapigo/cloud"
@@ -42,18 +43,21 @@ func (s *Response) Exists() bool {
 
 // String is an implementation of String() method for Response.
 func (s *Response) String() string {
-	n := len(*s)
-	if n == 0 {
+	var items []Item = *s
+
+	if len(items) == 0 {
 		return ""
 	}
 
-	items := make([]string, 0, n)
-	for _, v := range *s {
-		if v.Exists() {
-			items = append(items, v.String())
-		}
+	var result strings.Builder
+	result.WriteString("Spelling: \n\t")
+
+	for v := range slices.Values(items) {
+		result.WriteString(v.String())
+		result.WriteString("\n\t")
 	}
-	return fmt.Sprintf("Spelling: \n\t%s", strings.Join(items, "\n\t"))
+
+	return strings.TrimRight(result.String(), "\n\t")
 }
 
 // Exists is an implementation of Exists() method for Item.

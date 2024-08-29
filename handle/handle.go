@@ -123,16 +123,3 @@ func (y *Handler) translation(ctx context.Context) (result.Translation, error) {
 	}
 	return translation.Translate(ctx, y.client, y.config, request)
 }
-
-//// buildTextWithDictionary parses and builds text from parameters.
-//// It returns result text and true if it is a dictionary request.
-//func buildTextWithDictionary(params []string) (string, bool) {
-//	text, count := arguments.Text(params)
-//
-//	if text == "" {
-//		// not found any words for translation
-//		return "", false
-//	}
-//
-//	return text, count == 1
-//}
