@@ -37,7 +37,7 @@ func TestRequest(t *testing.T) {
 		t.Fatal("response is nil")
 	}
 
-	expected := "Spelling: \n\tмалоко -> [молоко молока малого]"
+	expected := "Spelling:\n\tмалоко -> [молоко молока малого]"
 
 	if respString := resp.String(); respString != expected {
 		t.Errorf("expected: %q , got: %q", expected, respString)

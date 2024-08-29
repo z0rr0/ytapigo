@@ -43,6 +43,7 @@ func (s *Response) Exists() bool {
 
 // String is an implementation of String() method for Response.
 func (s *Response) String() string {
+	const sep = "\n\t"
 	var items []Item = *s
 
 	if len(items) == 0 {
@@ -50,14 +51,15 @@ func (s *Response) String() string {
 	}
 
 	var result strings.Builder
-	result.WriteString("Spelling: \n\t")
+	result.WriteString("Spelling:")
+	result.WriteString(sep)
 
 	for v := range slices.Values(items) {
 		result.WriteString(v.String())
-		result.WriteString("\n\t")
+		result.WriteString(sep)
 	}
 
-	return strings.TrimRight(result.String(), "\n\t")
+	return strings.TrimRight(result.String(), sep)
 }
 
 // Exists is an implementation of Exists() method for Item.
