@@ -68,7 +68,7 @@ func main() {
 	flag.StringVar(
 		&direction, "g", "",
 		fmt.Sprintf("translation direction "+
-			"(empty - auto en/ru, ru/en, %q - auto-detected language to ru)", handle.AutoLanguageDetect,
+			"(empty - 'en-ru' or 'ru-en' by ASCII codes, %q - auto-detected language to ru)", handle.AutoLanguageDetect,
 		),
 	)
 
